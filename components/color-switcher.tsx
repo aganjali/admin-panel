@@ -57,19 +57,17 @@ export function ColorSwitcher() {
                   )}
                 >
                   {/* Color Preview */}
-                  <div className="flex gap-1.5">
-                    {theme.colors.slice(0, 4).map((color, index) => (
+                  <div className={cn("flex gap-1.5", `theme-${theme.key}`)}>
+                    {Array.from(
+                      { length: 4 },
+                      (_, idx) => `--chart-${idx + 1}`
+                    ).map((varName) => (
                       <div
-                        key={index}
+                        key={varName}
                         className="h-5 w-5 rounded-full border-2 border-background shadow-sm transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: color }}
+                        style={{ backgroundColor: `var(${varName})` }}
                       />
                     ))}
-                    {theme.colors.length > 4 && (
-                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
-                        +{theme.colors.length - 4}
-                      </div>
-                    )}
                   </div>
 
                   {/* Theme Name */}
@@ -81,13 +79,17 @@ export function ColorSwitcher() {
                   </div>
 
                   {/* Gradient Preview Bar */}
-                  <div className="h-2 rounded-full opacity-60 group-hover:opacity-80 transition-opacity overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-2 rounded-full opacity-60 group-hover:opacity-80 transition-opacity overflow-hidden",
+                      `theme-${theme.key}`
+                    )}
+                  >
                     <div
                       className="h-full w-full"
                       style={{
-                        background: `linear-gradient(to right, ${theme.colors
-                          .slice(0, 3)
-                          .join(", ")})`,
+                        background:
+                          "linear-gradient(to right, var(--chart-1), var(--chart-2), var(--chart-3))",
                       }}
                     />
                   </div>
