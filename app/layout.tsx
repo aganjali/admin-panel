@@ -4,6 +4,7 @@ import { Providers } from "./providers";
 
 import "@/styles/globals.css";
 import { detectLanguage } from "@/lib/locales/server";
+import { detectTheme } from "@/lib/themes/server";
 // import { ColorThemeProvider } from "@/components/color-theme-provider";
 
 const geistSans = Geist({
@@ -27,12 +28,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const lang = await detectLanguage();
+  const theme = await detectTheme();
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} theme-default text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)]`}
+        className={`${geistSans.variable} ${geistMono.variable} theme-${theme} text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)]`}
       >
-        <Providers lang={lang}>{children}</Providers>
+        <Providers lang={lang} theme={theme}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

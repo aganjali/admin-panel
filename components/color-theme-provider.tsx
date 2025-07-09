@@ -1,6 +1,7 @@
 "use client";
 
-import { useLocalStorage } from "@/hooks/use-local-storage";
+import { useStorageState } from "@/hooks/use-storage-state";
+import { cookie } from "@/lib/storage";
 import { createContext, ReactNode, useContext, useEffect } from "react";
 
 type ThemeContextType = {
@@ -15,10 +16,13 @@ export function ColorThemeProvider({
   initialTheme,
 }: {
   children: ReactNode;
-  initialTheme?: string;
+  initialTheme: string;
 }) {
-  const { setState: setActiveTheme, state: activeTheme } =
-    useLocalStorage<string>("color-theme", initialTheme || "default");
+  const { setState: setActiveTheme, state: activeTheme } = useStorageState(
+    "color-theme",
+    cookie,
+    initialTheme
+  );
 
   useEffect(() => {
     console.log({ activeTheme });

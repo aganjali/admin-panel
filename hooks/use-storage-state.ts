@@ -1,11 +1,11 @@
 import { useMemo, useState, useEffect, useCallback } from "react";
 
 import { isEqual } from "@/lib/helper";
-import { getStorage, setStorage, removeStorage } from "@/lib/local-storage";
+import { StorageBase } from "@/lib/storage/storage-base";
 
 // ----------------------------------------------------------------------
 
-export type UseLocalStorageReturn<T> = {
+export type UseStorageStateReturn<T> = {
   state: T;
   canReset: boolean;
   resetState: () => void;
@@ -13,10 +13,11 @@ export type UseLocalStorageReturn<T> = {
   setField: (name: keyof T, updateValue: T[keyof T]) => void;
 };
 
-export function useLocalStorage<T>(
+export function useStorageState<T>(
   key: string,
+  storage: StorageBase,
   initialState: T
-): UseLocalStorageReturn<T> {
+): UseStorageStateReturn<T> {
   const [state, set] = useState(initialState);
 
   const multiValue = initialState && typeof initialState === "object";
@@ -24,7 +25,7 @@ export function useLocalStorage<T>(
   const canReset = !isEqual(state, initialState);
 
   useEffect(() => {
-    const restoredValue: T = getStorage(key);
+    const restoredValue = storage.get<T>(key);
 
     if (restoredValue) {
       if (multiValue) {
@@ -33,21 +34,22 @@ export function useLocalStorage<T>(
         set(restoredValue);
       }
     }
-  }, [key, multiValue]);
+  }, [key, multiValue, storage]);
 
   const setState = useCallback(
     (updateState: T | Partial<T>) => {
       if (multiValue) {
         set((prevValue) => {
-          setStorage<T>(key, { ...prevValue, ...updateState });
-          return { ...prevValue, ...updateState };
+          const newValue = { ...prevValue, ...updateState };
+          storage.set<T>(key, newValue);
+          return newValue;
         });
       } else {
-        setStorage<T>(key, updateState as T);
+        storage.set<T>(key, updateState as T);
         set(updateState as T);
       }
     },
-    [key, multiValue]
+    [key, multiValue, storage]
   );
 
   const setField = useCallback(
@@ -61,8 +63,8 @@ export function useLocalStorage<T>(
 
   const resetState = useCallback(() => {
     set(initialState);
-    removeStorage(key);
-  }, [initialState, key]);
+    storage.remove(key);
+  }, [initialState, key, storage]);
 
   const memoizedValue = useMemo(
     () => ({

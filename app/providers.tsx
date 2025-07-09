@@ -9,9 +9,11 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 export function Providers({
   children,
   lang,
+  theme,
 }: Readonly<{
   children: React.ReactNode;
   lang: LanguageValue;
+  theme: string;
 }>) {
   return (
     <I18nProvider lang={lang}>
@@ -22,7 +24,7 @@ export function Providers({
           enableSystem
           disableTransitionOnChange
         >
-          <ColorThemeProvider>
+          <ColorThemeProvider initialTheme={theme}>
             {children}
             <Toaster />
           </ColorThemeProvider>
