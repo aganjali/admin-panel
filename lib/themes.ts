@@ -1,5 +1,15 @@
 export const themes = [
   {
+    name: "Default",
+    key: "default",
+    colors: [
+      "oklch(0.7 0.2 280)",
+      "oklch(0.9 0.02 280)",
+      "oklch(0.92 0.05 280)",
+      "oklch(0.9 0.02 280)",
+    ],
+  },
+  {
     name: "Amber Minimal",
     key: "amber-minimal",
     colors: [
