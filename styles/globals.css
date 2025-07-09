@@ -136,3 +136,61 @@
     @apply relative touch-manipulation after:absolute after:-inset-2;
   }
 }
+
+@layer components {
+  .tree-node {
+    --tree-indent: 1rem;
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .tree-node-button {
+    @apply transition-colors duration-200 ease-in-out;
+  }
+
+  .tree-node-button:hover {
+    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+  }
+
+  .tree-chevron {
+    @apply transition-transform duration-200 ease-in-out;
+  }
+
+  .tree-chevron.expanded {
+    @apply rotate-90;
+  }
+
+  /* Tree indentation for nested levels */
+  .tree-level-1 {
+    @apply ml-4;
+  }
+
+  .tree-level-2 {
+    @apply ml-8;
+  }
+
+  .tree-level-3 {
+    @apply ml-12;
+  }
+
+  /* Collapsed sidebar tree styles */
+  .sidebar-collapsed .tree-node {
+    @apply overflow-hidden;
+  }
+
+  .sidebar-collapsed .tree-node-label {
+    @apply truncate;
+  }
+
+  /* Tree animation for expand/collapse */
+  .tree-content {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .tree-content.expanded {
+    @apply opacity-100;
+  }
+
+  .tree-content.collapsed {
+    @apply opacity-0 max-h-0 overflow-hidden;
+  }
+}

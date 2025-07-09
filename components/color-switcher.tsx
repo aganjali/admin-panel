@@ -1,36 +1,48 @@
 "use client";
 
-// import { useState } from "react";
 import { useColorTheme } from "./color-theme-provider";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "./ui/sheet";
 import { Button } from "./ui/button";
-import { Check, Palette } from "lucide-react";
+import { Palette } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { themes } from "@/lib/themes";
-
-// interface BaseColorOKLCH {
-//   light: Record<string, string>;
-//   dark: Record<string, string>;
-// }
 
 export function ColorSwitcher() {
   const { activeTheme, setActiveTheme } = useColorTheme();
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-2 bg-transparent">
+    <Sheet>
+      <SheetTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="gap-2 bg-transparent hover:bg-muted/50 transition-colors"
+        >
           <Palette className="h-4 w-4" />
           <span className="hidden sm:inline">Colors</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-64 p-3" align="end">
-        <div className="space-y-3">
-          <div className="text-sm font-medium">Choose a color theme</div>
-          <div className="grid grid-cols-3 gap-2">
+      </SheetTrigger>
+      <SheetContent
+        className="w-80 sm:w-96 flex flex-col"
+        overlayClassName="bg-transparent"
+      >
+        <SheetHeader className="flex-shrink-0">
+          <SheetTitle>Choose a color theme</SheetTitle>
+          <SheetDescription>
+            Select a color scheme for your interface
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="flex-1 overflow-y-auto pr-2">
+          <div className="grid grid-cols-2 gap-3 pb-6 p-3 pt-0">
             {themes.map((theme) => {
-              //   const colors = getThemeColors(theme);
-              // theme.cssVars.light.primary
               const isSelected = activeTheme === theme.key;
 
               return (
@@ -38,34 +50,53 @@ export function ColorSwitcher() {
                   key={theme.key}
                   onClick={() => setActiveTheme(theme.key)}
                   className={cn(
-                    "relative flex flex-col items-center gap-2 rounded-md border-2 p-2 text-xs transition-colors hover:bg-muted/50",
-                    isSelected ? "border-primary" : "border-muted"
+                    "group relative flex flex-col gap-3 rounded-lg border-2 p-3 text-left transition-all duration-200 hover:shadow-md",
+                    isSelected
+                      ? "border-primary bg-primary/5 shadow-sm"
+                      : "border-border hover:border-primary/50 hover:bg-muted/30"
                   )}
                 >
-                  <div className="flex gap-1">
+                  {/* Color Preview */}
+                  <div className="flex gap-1.5">
+                    {theme.colors.slice(0, 4).map((color, index) => (
+                      <div
+                        key={index}
+                        className="h-5 w-5 rounded-full border-2 border-background shadow-sm transition-transform group-hover:scale-110"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    {theme.colors.length > 4 && (
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-muted text-[10px] font-medium text-muted-foreground">
+                        +{theme.colors.length - 4}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Theme Name */}
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">{theme.name}</span>
+                    {/* {isSelected && (
+                      <div className="h-2 w-2 rounded-full bg-primary" />
+                    )} */}
+                  </div>
+
+                  {/* Gradient Preview Bar */}
+                  <div className="h-2 rounded-full opacity-60 group-hover:opacity-80 transition-opacity overflow-hidden">
                     <div
-                      className="h-4 w-4 rounded-full border"
+                      className="h-full w-full"
                       style={{
-                        backgroundColor: theme.colors[0],
-                      }}
-                    />
-                    <div
-                      className="h-4 w-4 rounded-full border"
-                      style={{
-                        backgroundColor: theme.colors[1],
+                        background: `linear-gradient(to right, ${theme.colors
+                          .slice(0, 3)
+                          .join(", ")})`,
                       }}
                     />
                   </div>
-                  <span className="font-medium">{theme.name}</span>
-                  {isSelected && (
-                    <Check className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-primary-foreground p-0.5" />
-                  )}
                 </button>
               );
             })}
           </div>
         </div>
-      </PopoverContent>
-    </Popover>
+      </SheetContent>
+    </Sheet>
   );
 }
