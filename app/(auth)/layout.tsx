@@ -1,5 +1,5 @@
 import AuthHeader from "@/components/auth-header";
-import { GalleryVerticalEnd } from "lucide-react";
+import Image from "next/image";
 
 export default function Layout({
   children,
@@ -15,9 +15,10 @@ export default function Layout({
         </div>
       </div>
       <div className="bg-muted relative hidden lg:block">
-        <img
+        <Image
           src="/placeholder.svg"
           alt="Image"
+          fill
           className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
         />
       </div>

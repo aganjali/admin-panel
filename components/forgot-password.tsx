@@ -34,7 +34,7 @@ export function ForgotForm({
     },
   });
 
-  function onSubmit(data: ForgotFormValues) {
+  function onSubmit(_: ForgotFormValues) {
     router.push("/reset-password");
   }
 
