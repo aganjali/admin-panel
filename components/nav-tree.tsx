@@ -11,11 +11,11 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import { type TreeNode } from "./tree-data";
 
 interface NavTreeProps {
@@ -26,6 +26,59 @@ interface NavTreeProps {
 interface TreeNodeItemProps {
   node: TreeNode;
   level?: number;
+}
+
+function CollapsibleSubMenu({
+  isExpanded,
+  children,
+  className,
+}: {
+  isExpanded: boolean;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  const ref = React.useRef<HTMLUListElement>(null);
+  const [height, setHeight] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!ref.current) return;
+
+    // Measure the full height of the content when expanded.
+    const contentHeight = ref.current.scrollHeight;
+
+    if (isExpanded) {
+      setHeight(contentHeight);
+    } else {
+      // Collapse to 0 for the closing animation.
+      setHeight(0);
+    }
+  }, [isExpanded, children]);
+
+  // Update height on window resize so the animation stays accurate.
+  React.useEffect(() => {
+    if (!isExpanded) return;
+
+    const handleResize = () => {
+      if (ref.current) setHeight(ref.current.scrollHeight);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [isExpanded]);
+
+  return (
+    <ul
+      ref={ref}
+      style={{ maxHeight: height }}
+      // Re-use the same base styles from SidebarMenuSub, plus animation tweaks.
+      className={cn(
+        "border-sidebar-border mx-3.5 flex min-w-0 translate-x-px flex-col gap-1 border-l px-2.5 py-0.5 overflow-hidden group-data-[collapsible=icon]:hidden transition-[max-height] duration-300 ease-in-out",
+        className
+      )}
+    >
+      {children}
+    </ul>
+  );
 }
 
 function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
@@ -63,12 +116,12 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
             />
           )}
         </SidebarMenuButton>
-        {hasChildren && isExpanded && (
-          <SidebarMenuSub>
+        {hasChildren && (
+          <CollapsibleSubMenu isExpanded={isExpanded}>
             {node.children!.map((child) => (
               <TreeNodeItem key={child.id} node={child} level={level + 1} />
             ))}
-          </SidebarMenuSub>
+          </CollapsibleSubMenu>
         )}
       </SidebarMenuItem>
     );
@@ -99,12 +152,12 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
           </a>
         )}
       </SidebarMenuSubButton>
-      {hasChildren && isExpanded && (
-        <SidebarMenuSub className="ml-4">
+      {hasChildren && (
+        <CollapsibleSubMenu isExpanded={isExpanded} className="ml-4">
           {node.children!.map((child) => (
             <TreeNodeItem key={child.id} node={child} level={level + 1} />
           ))}
-        </SidebarMenuSub>
+        </CollapsibleSubMenu>
       )}
     </SidebarMenuSubItem>
   );
