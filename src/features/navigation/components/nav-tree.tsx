@@ -2,7 +2,8 @@
 
 import * as React from "react";
 import { IconChevronRight } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
 import {
   SidebarGroup,
@@ -85,7 +86,9 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const { state } = useSidebar();
   const router = useRouter();
+  const pathname = usePathname();
   const hasChildren = node.children && node.children.length > 0;
+  const isActive = node.url ? pathname === node.url : false;
 
   const handleClick = () => {
     if (hasChildren) {
@@ -105,6 +108,7 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
           onClick={handleClick}
           tooltip={state === "collapsed" ? node.name : undefined}
           className="group/item"
+          isActive={isActive}
         >
           <Icon className="size-4" />
           <span>{node.name}</span>
@@ -131,9 +135,10 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton
-        onClick={handleClick}
+        onClick={hasChildren ? handleClick : undefined}
         className="group/subitem"
         asChild={!hasChildren}
+        isActive={isActive}
       >
         {hasChildren ? (
           <div className="flex w-full items-center">
@@ -146,10 +151,10 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
             />
           </div>
         ) : (
-          <a href={node.url} className="flex items-center">
+          <Link href={node.url || "#"} className="flex items-center">
             <Icon className="mr-2 size-4" />
             <span>{node.name}</span>
-          </a>
+          </Link>
         )}
       </SidebarMenuSubButton>
       {hasChildren && (

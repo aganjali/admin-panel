@@ -24,7 +24,7 @@ export const user = {
 export const navMain = [
   {
     title: "Dashboard",
-    url: "#",
+    url: "/",
     icon: IconDashboard,
   },
   {
