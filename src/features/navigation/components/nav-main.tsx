@@ -11,15 +11,17 @@ import {
   SidebarMenuItem,
 } from "@/shared/components/ui/sidebar";
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon?: Icon;
-  }[];
-}) {
+export interface NavItem {
+  title: string;
+  url: string;
+  icon?: Icon;
+}
+
+interface NavMainProps {
+  items: NavItem[];
+}
+
+export function NavMain({ items }: NavMainProps) {
   const pathname = usePathname();
 
   return (

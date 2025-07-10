@@ -25,6 +25,7 @@ import {
   IconWebhook,
   IconTool as IconMaintenance,
   IconSubscript,
+  IconUserBolt,
 } from "@tabler/icons-react";
 
 export interface TreeNode {
@@ -245,6 +246,25 @@ export const treeData: TreeNode[] = [
         name: "Order Event Histories",
         icon: IconRefresh,
         url: "/orders/order-event-histories",
+      },
+    ],
+  },
+  {
+    id: "investor-manager",
+    name: "Investor Manager",
+    icon: IconUserCog,
+    children: [
+      {
+        id: "investors",
+        name: "Investors",
+        icon: IconUsers,
+        url: "/investor-manager/investors",
+      },
+      {
+        id: "kyc-attempts",
+        name: "Kyc Attempts",
+        icon: IconUserBolt,
+        url: "/investor-manager/kyc-attempts",
       },
     ],
   },

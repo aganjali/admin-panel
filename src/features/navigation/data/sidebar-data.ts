@@ -1,10 +1,7 @@
 import {
-  IconCamera,
   IconDashboard,
   IconDatabase,
-  IconFileAi,
   IconFileDescription,
-  IconFileWord,
   IconFolder,
   IconHelp,
   IconListDetails,
@@ -12,6 +9,7 @@ import {
   IconSearch,
   IconSettings,
   IconUsers,
+  IconChartPie,
 } from "@tabler/icons-react";
 
 export const user = {
@@ -28,117 +26,55 @@ export const navMain = [
   },
   {
     title: "Categories",
-    url: "#",
+    url: "/categories",
     icon: IconListDetails,
   },
   {
     title: "Holders",
-    url: "#",
+    url: "/administration/users",
     icon: IconUsers,
   },
   {
     title: "MIFID Tests",
-    url: "#",
+    url: "/mifid-tests",
     icon: IconFileDescription,
   },
   {
     title: "Digital securities",
-    url: "#",
+    url: "/digital-securities",
     icon: IconDatabase,
   },
   {
     title: "News",
-    url: "#",
+    url: "/news",
     icon: IconReport,
   },
   {
     title: "Static Pages",
-    url: "#",
+    url: "/static-pages",
     icon: IconFolder,
   },
-];
-
-export const navClouds = [
   {
-    title: "Capture",
-    icon: IconCamera,
-    isActive: true,
-    url: "#",
-    items: [
-      {
-        title: "Active Proposals",
-        url: "#",
-      },
-      {
-        title: "Archived",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "Proposal",
-    icon: IconFileDescription,
-    url: "#",
-    items: [
-      {
-        title: "Active Proposals",
-        url: "#",
-      },
-      {
-        title: "Archived",
-        url: "#",
-      },
-    ],
-  },
-  {
-    title: "Prompts",
-    icon: IconFileAi,
-    url: "#",
-    items: [
-      {
-        title: "Active Proposals",
-        url: "#",
-      },
-      {
-        title: "Archived",
-        url: "#",
-      },
-    ],
+    title: "BI",
+    url: "/bi",
+    icon: IconChartPie,
   },
 ];
 
 export const navSecondary = [
   {
     title: "Settings",
-    url: "#",
+    url: "/administration/settings",
     icon: IconSettings,
   },
   {
     title: "Get Help",
-    url: "#",
+    url: "/help",
     icon: IconHelp,
   },
   {
     title: "Search",
-    url: "#",
+    url: "/search",
     icon: IconSearch,
-  },
-];
-
-export const documents = [
-  {
-    name: "Data Library",
-    url: "#",
-    icon: IconDatabase,
-  },
-  {
-    name: "Reports",
-    url: "#",
-    icon: IconReport,
-  },
-  {
-    name: "Word Assistant",
-    url: "#",
-    icon: IconFileWord,
   },
 ];
