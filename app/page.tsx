@@ -7,7 +7,7 @@ import {
 import { SiteHeader } from "@/shared/components/layout/site-header";
 import { SidebarInset, SidebarProvider } from "@/shared/components/ui/sidebar";
 
-import data from "@/features/documents/data/documents.json";
+import data from "@/features/dashboard/data/data.json";
 
 export default function Page() {
   return (
