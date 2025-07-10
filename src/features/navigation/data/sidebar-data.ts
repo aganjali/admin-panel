@@ -1,6 +1,5 @@
 import {
   IconCamera,
-  IconChartBar,
   IconDashboard,
   IconDatabase,
   IconFileAi,
@@ -28,24 +27,34 @@ export const navMain = [
     icon: IconDashboard,
   },
   {
-    title: "Lifecycle",
+    title: "Categories",
     url: "#",
     icon: IconListDetails,
   },
   {
-    title: "Analytics",
-    url: "#",
-    icon: IconChartBar,
-  },
-  {
-    title: "Projects",
-    url: "#",
-    icon: IconFolder,
-  },
-  {
-    title: "Team",
+    title: "Holders",
     url: "#",
     icon: IconUsers,
+  },
+  {
+    title: "MIFID Tests",
+    url: "#",
+    icon: IconFileDescription,
+  },
+  {
+    title: "Digital securities",
+    url: "#",
+    icon: IconDatabase,
+  },
+  {
+    title: "News",
+    url: "#",
+    icon: IconReport,
+  },
+  {
+    title: "Static Pages",
+    url: "#",
+    icon: IconFolder,
   },
 ];
 

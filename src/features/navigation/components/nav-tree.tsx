@@ -168,7 +168,7 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
   );
 }
 
-export function NavTree({ nodes, title = "Documents" }: NavTreeProps) {
+export function NavTree({ nodes, title = "" }: NavTreeProps) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>{title}</SidebarGroupLabel>
