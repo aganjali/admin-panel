@@ -57,15 +57,12 @@ export function ColorSwitcher() {
                   )}
                 >
                   {/* Color Preview */}
-                  <div className={cn("flex gap-1.5", `theme-${theme.key}`)}>
-                    {Array.from(
-                      { length: 4 },
-                      (_, idx) => `--chart-${idx + 1}`
-                    ).map((varName) => (
+                  <div className="flex gap-1.5">
+                    {theme.colors.map((color, index) => (
                       <div
-                        key={varName}
+                        key={index}
                         className="h-5 w-5 rounded-full border-2 border-background shadow-sm transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: `var(${varName})` }}
+                        style={{ backgroundColor: color }}
                       />
                     ))}
                   </div>
@@ -73,23 +70,16 @@ export function ColorSwitcher() {
                   {/* Theme Name */}
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{theme.name}</span>
-                    {/* {isSelected && (
-                      <div className="h-2 w-2 rounded-full bg-primary" />
-                    )} */}
                   </div>
 
                   {/* Gradient Preview Bar */}
-                  <div
-                    className={cn(
-                      "h-2 rounded-full opacity-60 group-hover:opacity-80 transition-opacity overflow-hidden",
-                      `theme-${theme.key}`
-                    )}
-                  >
+                  <div className="h-2 rounded-full opacity-60 group-hover:opacity-80 transition-opacity overflow-hidden">
                     <div
                       className="h-full w-full"
                       style={{
-                        background:
-                          "linear-gradient(to right, var(--chart-1), var(--chart-2), var(--chart-3))",
+                        background: `linear-gradient(to right, ${theme.colors.join(
+                          ", "
+                        )})`,
                       }}
                     />
                   </div>
