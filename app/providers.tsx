@@ -1,8 +1,8 @@
 "use client";
-import { ColorThemeProvider } from "@/components/color-theme-provider";
-import { Toaster } from "@/components/ui/sonner";
-import { I18nProvider, LanguageValue } from "@/lib/locales";
-import { queryClient } from "@/lib/query";
+import { ColorThemeProvider } from "@/shared/components/widgets/color-theme-provider";
+import { Toaster } from "@/shared/components/ui/sonner";
+import { I18nProvider, LanguageValue } from "@/shared/lib/locales";
+import { queryClient } from "@/shared/lib/query";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 

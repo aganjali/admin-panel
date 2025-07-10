@@ -1,4 +1,4 @@
-import AuthHeader from "@/components/auth-header";
+import { AuthHeader } from "@/features/auth/components";
 import Image from "next/image";
 
 export default function Layout({
