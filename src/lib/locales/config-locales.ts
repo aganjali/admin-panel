@@ -11,7 +11,7 @@ export const cookieName = "NEXT_LOCALE";
 
 export function i18nOptions(lng = fallbackLng, ns = defaultNS) {
   return {
-    debug: true,
+    // debug: true,
     lng,
     fallbackLng,
     ns,
