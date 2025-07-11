@@ -27,7 +27,7 @@ const items = [
 ] as const;
 
 export function LayoutToggle() {
-  const { setLayot, layout } = useSettings();
+  const { setLayot, layout, setMinLayot } = useSettings();
   //   const { setOpen, open } = useSidebar();
   return (
     <div className="flex w-full justify-between">
@@ -37,7 +37,10 @@ export function LayoutToggle() {
       </div>
       <RadioGroup
         value={layout}
-        onValueChange={(v) => setLayot(v as any)}
+        onValueChange={(v) => {
+          setMinLayot(v === "full" ? "icon" : (v as any));
+          setLayot(v as any);
+        }}
         className="flex rounded-full border gap-1 p-px"
       >
         {items.map((m) => (

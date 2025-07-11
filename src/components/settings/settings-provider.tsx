@@ -6,6 +6,7 @@ import {
   CookieSettings,
   LayoutState,
   LocalStorageSettings,
+  MinLayoutState,
   SETTINGS_COOKIE_KEY,
 } from "@/lib/settings/index";
 import { createContext, ReactNode, useContext, useMemo } from "react";
@@ -15,6 +16,7 @@ export type Settings = LocalStorageSettings & CookieSettings;
 export type SettingsFunctions = {
   setActiveTheme: (theme: string) => void;
   setLayot: (l: LayoutState) => void;
+  setMinLayot: (l: MinLayoutState) => void;
 };
 
 type SettingsContextType = Settings & SettingsFunctions;
@@ -57,6 +59,7 @@ export function SettingsProvider({
       ...localStorageSettings,
       setActiveTheme: (t) => setCookieSettings("activeTheme", t),
       setLayot: (l) => setCookieSettings("layout", l),
+      setMinLayot: (l) => setCookieSettings("minLayout", l),
     };
   }, [
     cookieSettings,

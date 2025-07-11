@@ -157,7 +157,7 @@ export function AppSidebar({
   children,
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const { layout, setLayot } = useSettings();
+  const { layout, setLayot, minLayout } = useSettings();
   return (
     <SidebarProvider
       style={
@@ -169,19 +169,7 @@ export function AppSidebar({
       collapsible={layout === "icon" ? "icon" : "offcanvas"}
       open={layout === "full"}
       onOpenChange={(o) => {
-        setLayot(
-          layout === "full"
-            ? !o
-              ? "icon"
-              : "full"
-            : layout === "icon"
-            ? o
-              ? "full"
-              : "no-layout"
-            : o
-            ? "full"
-            : "no-layout"
-        );
+        setLayot(!o ? minLayout : "full");
       }}
     >
       <Sidebar {...props}>
