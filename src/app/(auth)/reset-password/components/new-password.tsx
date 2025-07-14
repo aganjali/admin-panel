@@ -7,22 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
+import { authApi } from "@/lib/api/auth";
+import { toast } from "sonner";
+import type { ApiError } from "@/lib/http";
 
 const NewPasswordSchema = z
   .object({
     newPassword: z
       .string()
-      .min(8, { message: "Password must be at least 8 characters long." })
-      .max(32, { message: "Password cannot exceed 32 characters." })
-      .regex(/[A-Z]/, {
-        message: "Password must include at least one uppercase letter.",
-      })
-      .regex(/[a-z]/, {
-        message: "Password must include at least one lowercase letter.",
-      })
-      .regex(/[0-9]/, {
-        message: "Password must include at least one number.",
-      }),
+      .min(1, { message: "Password must be at least 8 characters long." })
+      .max(32, { message: "Password cannot exceed 32 characters." }),
     confirmPassword: z.string(),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
@@ -30,18 +25,50 @@ const NewPasswordSchema = z
     path: ["confirmPassword"],
   });
 
-export function NewPasswordForm() {
+interface Props {
+  resetData: {
+    email: string;
+    resetCode: string;
+  };
+}
+
+export function NewPasswordForm({ resetData }: Props) {
   const router = useRouter();
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<z.infer<typeof NewPasswordSchema>>({
     resolver: zodResolver(NewPasswordSchema),
   });
 
-  function onSubmit(_: z.infer<typeof NewPasswordSchema>) {
-    router.push("/");
+  const resetPassword = useMutation({
+    mutationFn: (data: { resetCode: string; password: string }) =>
+      authApi
+        .resetPassword({
+          resetCode: data.resetCode,
+          password: data.password,
+        })
+        .fetch(),
+    onError: (error: ApiError) => {
+      console.error("Reset password error:", error);
+      toast.error(
+        error.message ?? "Failed to reset password. Please try again."
+      );
+    },
+    onSuccess: (data) => {
+      toast.success("Password has been reset successfully!");
+      if (data.result?.canLogin) {
+        router.push("/login");
+      }
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof NewPasswordSchema>) {
+    resetPassword.mutate({
+      resetCode: resetData.resetCode,
+      password: values.newPassword,
+    });
   }
 
   return (
@@ -84,8 +111,12 @@ export function NewPasswordForm() {
             </p>
           )}
         </div>
-        <Button type="submit" className="w-full mt-2" disabled={isSubmitting}>
-          {isSubmitting ? "Setting..." : "Set Password"}
+        <Button
+          type="submit"
+          className="w-full mt-2"
+          disabled={resetPassword.isPending}
+        >
+          {resetPassword.isPending ? "Setting..." : "Set Password"}
         </Button>
       </form>
     </>

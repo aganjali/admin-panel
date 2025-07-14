@@ -12,6 +12,10 @@ import {
 } from "@/components/ui/input-otp";
 import { useState } from "react";
 import Timer from "@/components/ui/timer";
+import { useMutation } from "@tanstack/react-query";
+import { authApi } from "@/lib/api/auth";
+import { toast } from "sonner";
+import type { ApiError } from "@/lib/http";
 
 const OTPSchema = z.object({
   pin: z.string().regex(/^\d{6}$/, {
@@ -20,18 +24,20 @@ const OTPSchema = z.object({
 });
 
 interface Props {
-  onDone: () => void;
+  email: string;
+  onDone: (code: string) => void;
 }
 
-export function VerifyOtpForm({ onDone }: Props) {
+export function VerifyOtpForm({ email, onDone }: Props) {
   const [expired, setExpired] = useState(false);
   const [expiration, setExpiration] = useState(() =>
     new Date(new Date().getTime() + 120000).toISOString()
   );
+
   const {
     control,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<z.infer<typeof OTPSchema>>({
     resolver: zodResolver(OTPSchema),
     defaultValues: {
@@ -39,16 +45,42 @@ export function VerifyOtpForm({ onDone }: Props) {
     },
   });
 
-  function onSubmit(_: z.infer<typeof OTPSchema>) {
-    onDone();
+  const resendCode = useMutation({
+    mutationFn: (data: { emailAddress: string }) =>
+      authApi.sendPasswordResetCode(data).fetch(),
+    onError: (error: ApiError) => {
+      console.error("Resend code error:", error);
+      toast.error(error.message ?? "Failed to resend code. Please try again.");
+    },
+    onSuccess: () => {
+      toast.success(
+        "Reset code sent! Check your email for the verification code."
+      );
+      setExpiration(new Date(new Date().getTime() + 120000).toISOString());
+      setExpired(false);
+    },
+  });
+
+  function onSubmit(values: z.infer<typeof OTPSchema>) {
+    // For now, we'll assume the code is valid and pass it to the parent
+    // In a real implementation, you might want to verify the code against the server
+    onDone(values.pin);
   }
+
+  const handleResend = () => {
+    if (email) {
+      resendCode.mutate({ emailAddress: email });
+    } else {
+      toast.error("Email address is required to resend code.");
+    }
+  };
 
   return (
     <>
       <div className="text-center">
         <h1 className="text-2xl font-bold">Enter Verification Code</h1>
         <p className="text-muted-foreground">
-          A 6-digit code was sent to your email.
+          A 6-digit code was sent to {email ? email : "your email"}.
         </p>
       </div>
 
@@ -81,11 +113,11 @@ export function VerifyOtpForm({ onDone }: Props) {
           </p>
         </div>
 
-        <Button type="submit" className="w-full" disabled={isSubmitting}>
-          {isSubmitting ? "Verifying..." : "Verify Code"}
+        <Button type="submit" className="w-full">
+          Verify Code
         </Button>
         <div className="text-center text-sm">
-          {expired ? (
+          {!expired ? (
             <p className="text-muted-foreground">
               Time remaining:{" "}
               <Timer expiration={expiration} onDone={() => setExpired(true)} />
@@ -94,15 +126,13 @@ export function VerifyOtpForm({ onDone }: Props) {
             <button
               type="button"
               className="text-primary"
-              onClick={() => {
-                setExpiration(
-                  new Date(new Date().getTime() + 120000).toISOString()
-                );
-                setExpired(false);
-              }}
+              onClick={handleResend}
+              disabled={resendCode.isPending}
             >
               <span>{"Didn't receive the code?"} </span>
-              <span className="hover:underline underline-offset-4">Resend</span>
+              <span className="hover:underline underline-offset-4">
+                {resendCode.isPending ? "Sending..." : "Resend"}
+              </span>
             </button>
           )}
         </div>

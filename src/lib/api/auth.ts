@@ -2,6 +2,9 @@ import {
   ApiResponse,
   AuthenticateModel,
   CurrentUserProfileEditDto,
+  ResetPasswordInput,
+  ResetPasswordOutput,
+  SendPasswordResetCodeInput,
 } from "@/types";
 import { AuthTokens, http } from "../http";
 
@@ -21,5 +24,17 @@ export const authApi = {
   getCurrentUserProfile: () =>
     http.get<ApiResponse<CurrentUserProfileEditDto>>({
       url: "/api/services/app/Profile/GetCurrentUserProfileForEdit",
+    }),
+  sendPasswordResetCode: (data: SendPasswordResetCodeInput) =>
+    http.post<ApiResponse<void>, SendPasswordResetCodeInput>({
+      url: "/api/services/app/Account/SendPasswordResetCode",
+      data,
+      isSecure: false,
+    }),
+  resetPassword: (data: ResetPasswordInput) =>
+    http.post<ApiResponse<ResetPasswordOutput>, ResetPasswordInput>({
+      url: "/api/services/app/Account/ResetPassword",
+      data,
+      isSecure: false,
     }),
 };

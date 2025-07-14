@@ -9,6 +9,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useMutation } from "@tanstack/react-query";
+import { authApi } from "@/lib/api/auth";
+import { toast } from "sonner";
+import type { ApiError } from "@/lib/http";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email({
@@ -26,7 +30,7 @@ export function ForgotForm({
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<ForgotFormValues>({
     resolver: zodResolver(ForgotPasswordSchema),
     defaultValues: {
@@ -34,8 +38,33 @@ export function ForgotForm({
     },
   });
 
-  function onSubmit(_: ForgotFormValues) {
-    router.push("/reset-password");
+  const sendResetCode = useMutation({
+    mutationFn: (data: { emailAddress: string }) =>
+      authApi.sendPasswordResetCode(data).fetch(),
+    onError: (error: ApiError) => {
+      console.error("Password reset error:", error);
+      toast.error(
+        error.message ?? "Failed to send reset code. Please try again."
+      );
+    },
+    onSuccess: () => {
+      toast.success(
+        "Reset code sent! Check your email for the verification code."
+      );
+    },
+  });
+
+  function onSubmit(values: ForgotFormValues) {
+    sendResetCode.mutate(
+      { emailAddress: values.email },
+      {
+        onSuccess: () => {
+          router.push(
+            `/reset-password?email=${encodeURIComponent(values.email)}`
+          );
+        },
+      }
+    );
   }
 
   return (
@@ -68,8 +97,12 @@ export function ForgotForm({
                 <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Sending..." : "Request reset link"}
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={sendResetCode.isPending}
+            >
+              {sendResetCode.isPending ? "Sending..." : "Request reset link"}
             </Button>
           </div>
           <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
