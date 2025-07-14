@@ -1,5 +1,4 @@
 import AuthHeader from "./components/auth-header";
-import Image from "next/image";
 
 export default function Layout({
   children,
@@ -14,12 +13,14 @@ export default function Layout({
           {children}
         </div>
       </div>
-      <div className="bg-muted relative hidden lg:block">
-        <Image
-          src="/placeholder.svg"
-          alt="Image"
-          fill
-          className="absolute inset-0 h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
+      <div className="relative hidden lg:flex bg-black justify-center items-center">
+        <video
+          src="/Tokenise Video.webm"
+          className="h-[70%] w-[70%] object-contain bg-black"
+          autoPlay
+          loop
+          muted
+          playsInline
         />
       </div>
     </main>
