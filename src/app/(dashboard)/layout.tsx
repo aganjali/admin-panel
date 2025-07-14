@@ -9,13 +9,11 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ProtectedRoute>
-      <AppSidebar variant="inset">
-        <SidebarInset variant="sticky-header">
-          <DashboardHeader />
-          {children}
-        </SidebarInset>
-      </AppSidebar>
-    </ProtectedRoute>
+    <AppSidebar variant="inset">
+      <SidebarInset variant="sticky-header">
+        <DashboardHeader />
+        {children}
+      </SidebarInset>
+    </AppSidebar>
   );
 }
