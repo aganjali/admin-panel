@@ -1,4 +1,5 @@
 "use client";
+import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
 import { NotificationPanel } from "@/components/notification-panel";
 import { SettingsDrawer } from "@/components/settings/settings-drawer";
 import { Separator } from "@/components/ui/separator";
@@ -13,7 +14,8 @@ export function DashboardHeader() {
           orientation="vertical"
           className="mx-2 data-[orientation=vertical]:h-4"
         />
-        <h1 className="text-base font-medium">Documents</h1>
+        <DynamicBreadcrumb />
+        {/* <h1 className="text-base font-medium">Documents</h1> */}
         <div className="ml-auto flex items-center gap-2">
           {/* <LanguageSwitch /> */}
           <NotificationPanel />
