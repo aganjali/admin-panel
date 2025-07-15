@@ -1,15 +1,12 @@
+import { LogoWithName } from "@/components/logo-with-name";
 import { SettingsDrawer } from "@/components/settings/settings-drawer";
-import { GalleryVerticalEnd } from "lucide-react";
 
 import Link from "next/link";
 export default function AuthHeader() {
   return (
     <header className="flex justify-center gap-2 md:justify-start">
-      <Link href="/" className="flex items-center gap-2 font-medium">
-        <div className="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
-          <GalleryVerticalEnd className="size-4" />
-        </div>
-        Acme Inc.
+      <Link href="/">
+        <LogoWithName />
       </Link>
       <div className="ml-auto flex items-center gap-2">
         <SettingsDrawer />

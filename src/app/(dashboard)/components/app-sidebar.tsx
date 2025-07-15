@@ -12,15 +12,12 @@ import {
   IconFileWord,
   IconFolder,
   IconHelp,
-  IconInnerShadowTop,
   IconListDetails,
   IconReport,
   IconSearch,
   IconSettings,
   IconUsers,
 } from "@tabler/icons-react";
-
-import { NavMain } from "@/components/nav-main";
 import { NavSecondary } from "@/components/nav-secondary";
 import { NavTree } from "@/components/nav-tree";
 import { NavUser } from "@/components/nav-user";
@@ -34,8 +31,12 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { useSettings } from "@/components/settings";
+import Link from "next/link";
+import { LogoWithName } from "@/components/logo-with-name";
+import { LogoWithOutName } from "@/components/logo-without-name";
 
 const data = {
   user: {
@@ -186,16 +187,13 @@ export function AppSidebar({
                 asChild
                 className="data-[slot=sidebar-menu-button]:!p-1.5"
               >
-                <a href="#">
-                  <IconInnerShadowTop className="!size-5" />
-                  <span className="text-base font-semibold">Acme Inc.</span>
-                </a>
+                <LogoContainer />
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarHeader>
         <SidebarContent>
-          <NavMain items={data.navMain} />
+          {/* <NavMain items={data.navMain} /> */}
           <NavTree nodes={treeData} />
           <NavSecondary items={data.navSecondary} className="mt-auto" />
         </SidebarContent>
@@ -205,5 +203,23 @@ export function AppSidebar({
       </Sidebar>
       {children}
     </SidebarProvider>
+  );
+}
+
+function LogoContainer() {
+  const { state } = useSidebar();
+
+  return (
+    <Link href="/" className="flex items-center gap-2">
+      {state === "expanded" ? (
+        <div className="h-6 w-auto flex items-center [&>svg]:h-6 [&>svg]:w-auto [&>svg]:max-w-none">
+          <LogoWithName />
+        </div>
+      ) : (
+        <div className="h-8 w-8 flex items-center justify-center [&>svg]:h-7 [&>svg]:w-auto">
+          <LogoWithOutName />
+        </div>
+      )}
+    </Link>
   );
 }

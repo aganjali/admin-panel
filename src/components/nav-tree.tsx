@@ -1,8 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { IconChevronRight } from "@tabler/icons-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 
 import {
   SidebarGroup,
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { type TreeNode } from "./tree-data";
+import { useEffect, useRef, useState } from "react";
 
 interface NavTreeProps {
   nodes: TreeNode[];
@@ -28,6 +28,25 @@ interface TreeNodeItemProps {
   level?: number;
 }
 
+function isNodeOrChildActive(node: TreeNode, pathname: string): boolean {
+  if (node.url && pathname === node.url) {
+    return true;
+  }
+
+  if (node.children) {
+    return node.children.some((child) => isNodeOrChildActive(child, pathname));
+  }
+
+  return false;
+}
+
+// Helper function to check if a node should be expanded (has active children)
+function shouldNodeBeExpanded(node: TreeNode, pathname: string): boolean {
+  if (!node.children) return false;
+
+  return node.children.some((child) => isNodeOrChildActive(child, pathname));
+}
+
 function CollapsibleSubMenu({
   isExpanded,
   children,
@@ -37,10 +56,10 @@ function CollapsibleSubMenu({
   children: React.ReactNode;
   className?: string;
 }) {
-  const ref = React.useRef<HTMLUListElement>(null);
-  const [height, setHeight] = React.useState(0);
+  const ref = useRef<HTMLUListElement>(null);
+  const [height, setHeight] = useState(0);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!ref.current) return;
 
     // Measure the full height of the content when expanded.
@@ -55,7 +74,7 @@ function CollapsibleSubMenu({
   }, [isExpanded, children]);
 
   // Update height on window resize so the animation stays accurate.
-  React.useEffect(() => {
+  useEffect(() => {
     if (!isExpanded) return;
 
     const handleResize = () => {
@@ -82,10 +101,19 @@ function CollapsibleSubMenu({
 }
 
 function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
-  const [isExpanded, setIsExpanded] = React.useState(false);
+  const pathname = usePathname();
   const { state } = useSidebar();
   const router = useRouter();
   const hasChildren = node.children && node.children.length > 0;
+
+  const shouldExpand = shouldNodeBeExpanded(node, pathname);
+  const [isExpanded, setIsExpanded] = useState(shouldExpand);
+
+  useEffect(() => {
+    if (shouldExpand) {
+      setIsExpanded(true);
+    }
+  }, [shouldExpand]);
 
   const handleClick = () => {
     if (hasChildren) {
@@ -97,22 +125,21 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
 
   const Icon = node.icon;
 
-  // For top-level items (level 0)
   if (level === 0) {
     return (
       <SidebarMenuItem>
         <SidebarMenuButton
           onClick={handleClick}
           tooltip={state === "collapsed" ? node.name : undefined}
-          className="group/item"
         >
           <Icon className="size-4" />
           <span>{node.name}</span>
           {hasChildren && (
             <IconChevronRight
-              className={`ml-auto size-4 transition-transform duration-200 ${
-                isExpanded ? "rotate-90" : ""
-              }`}
+              className={cn(
+                "ml-auto size-4 transition-transform duration-200",
+                { "rotate-90": isExpanded }
+              )}
             />
           )}
         </SidebarMenuButton>
@@ -127,12 +154,17 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
     );
   }
 
-  // For nested items (level > 0)
   return (
     <SidebarMenuSubItem>
       <SidebarMenuSubButton
         onClick={handleClick}
-        className="group/subitem"
+        className={cn(
+          !hasChildren &&
+            node.url &&
+            pathname === node.url &&
+            "bg-sidebar-accent text-sidebar-accent-foreground"
+        )}
+        data-active={!hasChildren && node.url && pathname === node.url}
         asChild={!hasChildren}
       >
         {hasChildren ? (
@@ -163,10 +195,10 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
   );
 }
 
-export function NavTree({ nodes, title = "Documents" }: NavTreeProps) {
+export function NavTree({ nodes, title = "" }: NavTreeProps) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title}</SidebarGroupLabel>
+      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
       <SidebarGroupContent>
         <SidebarMenu>
           {nodes.map((node) => (
