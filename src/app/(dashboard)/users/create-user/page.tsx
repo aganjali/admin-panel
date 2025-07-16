@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,8 +22,26 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload, User } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import { usersApi } from "@/lib/api/users";
+import type { CreateOrUpdateUserInput } from "@/types";
 
 export default function CreateUser() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const createUser = useMutation({
+    mutationFn: (input: CreateOrUpdateUserInput) =>
+      usersApi.createOrUpdateUser(input).fetch(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User created");
+      router.push("/dashboard/users");
+    },
+    onError: () => toast.error("Failed to create user"),
+  });
+
   const [avatarUrl, setAvatarUrl] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -41,10 +58,7 @@ export default function CreateUser() {
   });
 
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,10 +69,23 @@ export default function CreateUser() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission here
+    await createUser.mutateAsync({
+      user: {
+        name: formData.firstName,
+        surname: formData.surname,
+        userName: formData.username,
+        emailAddress: formData.email,
+        phoneNumber: formData.phoneNumber,
+        isActive: formData.active,
+        shouldChangePasswordOnNextLogin: formData.changePasswordOnLogin,
+      },
+      assignedRoleNames: [formData.role],
+      sendActivationEmail: true,
+      setRandomPassword: formData.setRandomPassword,
+    });
+    router.push("/users");
   };
 
   return (

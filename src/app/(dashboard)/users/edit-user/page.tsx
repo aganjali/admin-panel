@@ -1,8 +1,7 @@
 "use client";
 
 import type React from "react";
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,8 +22,41 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Upload, User } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { usersApi } from "@/lib/api/users";
+import type { CreateOrUpdateUserInput } from "@/types";
+import { toast } from "sonner";
 
 export default function EditUser() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const userId = searchParams.get("id");
+
+  useEffect(() => {
+    if (!userId) {
+      router.push("/users");
+    }
+  }, [userId, router]);
+
+  const { data: userData, isLoading } = useQuery({
+    queryKey: ["user", userId],
+    queryFn: () => usersApi.getUserForEdit({ Id: Number(userId) }).fetch(),
+    enabled: !!userId,
+  });
+
+  const queryClient = useQueryClient();
+  const updateUser = useMutation({
+    mutationFn: (input: CreateOrUpdateUserInput) =>
+      usersApi.createOrUpdateUser(input).fetch(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("User updated");
+      router.push("/dashboard/users");
+    },
+    onError: () => toast.error("Failed to update user"),
+  });
+
   const [avatarUrl, setAvatarUrl] = useState("");
   const [formData, setFormData] = useState({
     firstName: "",
@@ -40,11 +72,27 @@ export default function EditUser() {
     lockoutEnabled: false,
   });
 
+  useEffect(() => {
+    if (userData?.result?.user) {
+      const user = userData.result.user;
+      setFormData({
+        firstName: user.name ?? "",
+        surname: user.surname ?? "",
+        email: user.emailAddress ?? "",
+        phoneNumber: user.phoneNumber ?? "",
+        username: user.userName ?? "",
+        role: userData.result.roles?.find((r) => r.isAssigned)?.roleName ?? "",
+        setRandomPassword: false,
+        changePasswordOnLogin: false,
+        smtpSettingsNotProvided: false,
+        active: user.isActive ?? true,
+        lockoutEnabled: false,
+      });
+    }
+  }, [userData]);
+
   const handleInputChange = (field: string, value: string | boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,11 +103,28 @@ export default function EditUser() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
-    // Handle form submission here
+    if (!userId) return;
+    await updateUser.mutateAsync({
+      user: {
+        id: Number(userId),
+        name: formData.firstName,
+        surname: formData.surname,
+        userName: formData.username,
+        emailAddress: formData.email,
+        phoneNumber: formData.phoneNumber,
+        isActive: formData.active,
+        shouldChangePasswordOnNextLogin: formData.changePasswordOnLogin,
+      },
+      assignedRoleNames: [formData.role],
+      sendActivationEmail: false,
+      setRandomPassword: formData.setRandomPassword,
+    });
+    router.push("/users");
   };
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
@@ -283,7 +348,7 @@ export default function EditUser() {
               <Button type="button" variant="outline">
                 Cancel
               </Button>
-              <Button type="submit">Create User</Button>
+              <Button type="submit">Edit User</Button>
             </div>
           </form>
         </CardContent>
