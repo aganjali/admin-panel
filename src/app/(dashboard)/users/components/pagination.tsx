@@ -45,34 +45,14 @@ export function Pagination({
                 value={entriesPerPage}
                 onValueChange={onEntriesPerPageChange}
               >
-                <SelectTrigger className="w-20 bg-gray-800 border-gray-600 text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                <SelectTrigger className="w-20">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-600">
-                  <SelectItem
-                    value="10"
-                    className="text-white hover:bg-gray-700 focus:bg-gray-700"
-                  >
-                    10
-                  </SelectItem>
-                  <SelectItem
-                    value="25"
-                    className="text-white hover:bg-gray-700 focus:bg-gray-700"
-                  >
-                    25
-                  </SelectItem>
-                  <SelectItem
-                    value="50"
-                    className="text-white hover:bg-gray-700 focus:bg-gray-700"
-                  >
-                    50
-                  </SelectItem>
-                  <SelectItem
-                    value="100"
-                    className="text-white hover:bg-gray-700 focus:bg-gray-700"
-                  >
-                    100
-                  </SelectItem>
+                <SelectContent>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
               <span>entries</span>
@@ -92,22 +72,16 @@ export function Pagination({
             >
               Previous
             </Button>
-
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4].map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => onPageChange(page)}
-                  className="bg-primary border-primary"
-                >
-                  {page}
-                </Button>
-              ))}
-              <span className="text-gray-400 px-2">...</span>
-            </div>
-
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <Button
+                key={page}
+                variant={currentPage === page ? "default" : "outline"}
+                size="sm"
+                onClick={() => onPageChange(page)}
+              >
+                {page}
+              </Button>
+            ))}
             <Button
               variant="outline"
               size="sm"

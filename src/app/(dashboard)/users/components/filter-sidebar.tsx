@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-
 import {
   Sheet,
   SheetContent,
@@ -13,30 +12,50 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import type { Filters } from "./types";
+import { useState, useEffect } from "react";
+import { useQueryStates, parseAsArrayOf, parseAsString } from "nuqs";
 
 interface FilterSidebarProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  filters: Filters;
-  onFiltersChange: (filters: Filters) => void;
-  activeFiltersCount: number;
   roleOptions: string[];
-  departmentOptions: string[];
 }
 
 export function FilterSidebar({
   open,
   onOpenChange,
-  filters,
-  onFiltersChange,
-  activeFiltersCount,
   roleOptions,
 }: FilterSidebarProps) {
+  const [urlParams, setUrlParams] = useQueryStates({
+    roles: parseAsArrayOf(parseAsString).withDefault([]),
+  });
+
+  // Local selection state so filters apply only when button is pressed
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(urlParams.roles);
+
+  // When dialog opens, sync local state with URL params
+  useEffect(() => {
+    if (open) {
+      setSelectedRoles(urlParams.roles);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const activeFiltersCount = selectedRoles.length;
+
+  const handleRoleChange = (role: string, checked: boolean) => {
+    setSelectedRoles((prev) =>
+      checked ? [...prev, role] : prev.filter((r) => r !== role)
+    );
+  };
+
   const clearFilters = () => {
-    onFiltersChange({
-      roles: [],
-    });
+    setSelectedRoles([]);
+  };
+
+  const applyFilters = () => {
+    setUrlParams({ roles: selectedRoles });
+    onOpenChange(false);
   };
 
   return (
@@ -67,16 +86,15 @@ export function FilterSidebar({
 
         <ScrollArea className="h-[calc(100vh-120px)] pr-4">
           <div className="space-y-8">
-            {/* Roles Filter */}
             <div className="space-y-4">
               <div className="flex items-center gap-2 pb-2 border-b border-gray-800">
                 <Shield className="w-5 h-5 text-blue-400" />
                 <Label className="text-base font-semibold text-white">
                   Roles
                 </Label>
-                {filters.roles.length > 0 && (
+                {urlParams.roles.length > 0 && (
                   <Badge className="bg-blue-600/20 text-blue-400 text-xs">
-                    {filters.roles.length}
+                    {urlParams.roles.length}
                   </Badge>
                 )}
               </div>
@@ -88,8 +106,10 @@ export function FilterSidebar({
                   >
                     <Checkbox
                       id={`role-${role}`}
-                      checked={filters.roles.includes(role)}
-                      onCheckedChange={() => ""}
+                      checked={selectedRoles.includes(role)}
+                      onCheckedChange={(checked) =>
+                        handleRoleChange(role, checked as boolean)
+                      }
                       className="border-gray-600 data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
                     />
                     <Label
@@ -103,14 +123,13 @@ export function FilterSidebar({
               </div>
             </div>
 
-            {/* Apply Filters Button */}
             <div className="pt-4 border-t border-gray-800">
               <Button
-                onClick={() => onOpenChange(false)}
+                onClick={applyFilters}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white"
               >
                 Apply Filters
-                {activeFiltersCount > 0 && (
+                {selectedRoles.length > 0 && (
                   <Badge className="ml-2 bg-blue-800 text-blue-100">
                     {activeFiltersCount}
                   </Badge>
