@@ -3,7 +3,7 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import { DashboardHeader } from "./components/header";
 import { AuthGuard } from "@/components/guards/auth-gurad";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;

@@ -31,6 +31,7 @@ export async function login(data: AuthenticateModel) {
     const d = responseData.result as AuthenticateResultModel;
     const cookieNameJwt = process.env.JWT_COOKIE_NAME ?? "";
     const cookieName = process.env.REFRESH_COOKIE_NAME ?? "";
+
     if (!d.accessToken || !d.refreshToken) {
       return Response.json(responseData, { status: 401 });
     }
@@ -49,7 +50,7 @@ export async function login(data: AuthenticateModel) {
     }
 
     const isSecure = cookieName.startsWith("__Secure");
-    const isHttpOnly = process.env.NODE_ENV === "production";
+    const isHttpOnly = false; // process.env.NODE_ENV === "production";
     const domain = process.env.JWT_DOMAIN ?? "";
 
     let cookie = `${cookieName}=${d.refreshToken}; Path=/;`;
@@ -73,7 +74,7 @@ export async function login(data: AuthenticateModel) {
     });
 
     const isSecureJwt = cookieNameJwt.startsWith("__Secure");
-    const isHttpOnlyJwt = process.env.NODE_ENV === "production";
+    const isHttpOnlyJwt = false; //process.env.NODE_ENV === "production";
 
     cookie = `${cookieNameJwt}=${d.accessToken}; Path=/;`;
 
