@@ -9,7 +9,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Loader2, Shield } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Loader2, Shield, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { ModalView } from "@/services/managed-ui/context";
 import { useUI } from "@/services/managed-ui";
@@ -26,6 +27,7 @@ export const UserPermissionsView: React.FC<UserPermissionsViewProps> = ({
 }) => {
   const { closeModal } = useUI();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const isPermissionsModal = modalView.name === "USER_PERMISSIONS";
   const args = isPermissionsModal
@@ -57,15 +59,22 @@ export const UserPermissionsView: React.FC<UserPermissionsViewProps> = ({
     },
   });
 
-  // Convert flat permissions to tree structure
+  // Convert flat permissions to tree structure and filter based on search
   const treeData = useMemo<TreeNode[]>(() => {
     if (!data?.permissions) return [];
 
     const permissionMap = new Map<string, TreeNode>();
     const rootNodes: TreeNode[] = [];
 
-    // First pass: create all nodes
-    data.permissions.forEach((permission) => {
+    // Filter permissions based on search query
+    const filteredPermissions = data.permissions.filter((permission) => {
+      if (!searchQuery) return true;
+      const displayName = permission.displayName || permission.name || "";
+      return displayName.toLowerCase().includes(searchQuery.toLowerCase());
+    });
+
+    // First pass: create all filtered nodes
+    filteredPermissions.forEach((permission) => {
       permissionMap.set(permission.name || "", {
         id: permission.name || "",
         label: permission.displayName || permission.name || "",
@@ -74,7 +83,7 @@ export const UserPermissionsView: React.FC<UserPermissionsViewProps> = ({
     });
 
     // Second pass: build tree structure
-    data.permissions.forEach((permission) => {
+    filteredPermissions.forEach((permission) => {
       const node = permissionMap.get(permission.name || "");
       if (!node) return;
 
@@ -87,7 +96,7 @@ export const UserPermissionsView: React.FC<UserPermissionsViewProps> = ({
     });
 
     return rootNodes;
-  }, [data]);
+  }, [data, searchQuery]);
 
   // Set initial selected permissions
   useEffect(() => {
@@ -117,8 +126,11 @@ export const UserPermissionsView: React.FC<UserPermissionsViewProps> = ({
   if (!isPermissionsModal) return null;
 
   return (
-    <DialogContent {...modalView.props} className="max-w-2xl max-h-[80vh]">
-      <DialogHeader>
+    <DialogContent
+      {...modalView.props}
+      className="w-[700px] h-[600px] max-w-none max-h-none flex flex-col"
+    >
+      <DialogHeader className="flex-shrink-0">
         <DialogTitle className="flex items-center gap-2">
           <Shield className="h-5 w-5" />
           User Permissions
@@ -129,23 +141,35 @@ export const UserPermissionsView: React.FC<UserPermissionsViewProps> = ({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="py-4 max-h-[50vh] overflow-y-auto">
-        {isLoading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
-          </div>
-        ) : (
-          <TreeView
-            data={treeData}
-            selectedIds={selectedIds}
-            onSelectionChange={setSelectedIds}
-            expansionMode="expand-selecteds"
-            className="w-full"
+      <div className="flex-1 flex flex-col space-y-4 min-h-0">
+        <div className="relative flex-shrink-0">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search permissions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
           />
-        )}
+        </div>
+
+        <div className="flex-1 overflow-y-auto min-h-0 border rounded-md p-2">
+          {isLoading ? (
+            <div className="flex items-center justify-center h-full">
+              <Loader2 className="h-8 w-8 animate-spin" />
+            </div>
+          ) : (
+            <TreeView
+              data={treeData}
+              selectedIds={selectedIds}
+              onSelectionChange={setSelectedIds}
+              expansionMode="expand-selecteds"
+              className="w-full"
+            />
+          )}
+        </div>
       </div>
 
-      <DialogFooter className="flex justify-between">
+      <DialogFooter className="flex justify-between flex-shrink-0 mt-4">
         <Button
           variant="outline"
           onClick={handleReset}
