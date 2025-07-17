@@ -7,10 +7,30 @@ export interface WalletPasswordViewArgs {
   submitFn?: (password: string) => Promise<void>;
 }
 
-export type MODAL_ARGS = {
-  name: "WALLET_PASSWORD";
-  args: WalletPasswordViewArgs;
-};
+export interface DeleteUserViewArgs {
+  userId: number;
+  userName?: string;
+  onConfirm: () => Promise<void>;
+}
+
+export interface UserPermissionsViewArgs {
+  userId: number;
+  userName?: string;
+}
+
+export type MODAL_ARGS =
+  | {
+      name: "WALLET_PASSWORD";
+      args: WalletPasswordViewArgs;
+    }
+  | {
+      name: "DELETE_USER";
+      args: DeleteUserViewArgs;
+    }
+  | {
+      name: "USER_PERMISSIONS";
+      args: UserPermissionsViewArgs;
+    };
 
 export type ModalProps = DialogContentProps & {
   onModalClose?: () => void;

@@ -12,6 +12,7 @@ import {
 } from "nuqs";
 import { toast } from "sonner";
 import { UsersDataTable } from "./components/data-table";
+import { useUI } from "@/services/managed-ui";
 
 const buildUserQueryParams = (params: {
   page: number;
@@ -34,6 +35,7 @@ const buildUserQueryParams = (params: {
 
 export default function UsersPage() {
   const router = useRouter();
+  const { openModal, setModalView } = useUI();
 
   const [urlParams, setUrlParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -68,12 +70,37 @@ export default function UsersPage() {
   }
 
   const handleUserAction = async (userId: number, action: string) => {
+    const user = users.find((u) => u.id === userId);
+    const userName = user ? `${user.name} ${user.surname}`.trim() : undefined;
+
     switch (action) {
       case "edit":
         router.push(`/users/edit-user?id=${userId}`);
         break;
       case "delete":
-        await deleteUser.mutateAsync({ Id: userId });
+        setModalView({
+          name: "DELETE_USER",
+          args: {
+            userId,
+            userName,
+            onConfirm: async () => {
+              await deleteUser.mutateAsync({ Id: userId });
+            },
+          },
+          props: { cancelable: true },
+        });
+        openModal();
+        break;
+      case "permissions":
+        setModalView({
+          name: "USER_PERMISSIONS",
+          args: {
+            userId,
+            userName,
+          },
+          props: { cancelable: true },
+        });
+        openModal();
         break;
     }
   };

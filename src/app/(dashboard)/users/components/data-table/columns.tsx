@@ -10,7 +10,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  IconDotsVertical,
+  IconEdit,
+  IconTrash,
+  IconShield,
+} from "@tabler/icons-react";
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -160,17 +165,17 @@ export const getColumns = (
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-max">
-            <DropdownMenuItem
-              onClick={() => onUserAction(user.id ?? 0, "edit")}
+            {/* <DropdownMenuItem
+              onClick={() => onUserAction(user.id ?? 0, "login")}
             >
-              <IconEdit className="w-4 h-4 mr-2" />
+              <IconLogin className="w-4 h-4 mr-2" />
               Login as this user
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem
-              onClick={() => onUserAction(user.id ?? 0, "edit")}
+              onClick={() => onUserAction(user.id ?? 0, "permissions")}
             >
-              <IconEdit className="w-4 h-4 mr-2" />
-              Permisions
+              <IconShield className="w-4 h-4 mr-2" />
+              Permissions
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => onUserAction(user.id ?? 0, "edit")}
