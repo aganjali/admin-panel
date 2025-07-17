@@ -3472,27 +3472,6 @@ export interface GetUserPermissionsForEditOutput {
   grantedPermissionNames?: string[] | null;
 }
 
-export interface GetUsersInput {
-  /**
-   * @format int32
-   * @min 1
-   * @max 1000
-   */
-  maxResultCount?: number;
-  /**
-   * @format int32
-   * @min 0
-   * @max 2147483647
-   */
-  skipCount?: number;
-  sorting?: string | null;
-  filter?: string | null;
-  permissions?: string[] | null;
-  /** @format int32 */
-  role?: number | null;
-  onlyLockedUsers?: boolean;
-}
-
 export interface GoogleExternalLoginProviderSettings {
   clientId?: string | null;
   clientSecret?: string | null;
@@ -9763,6 +9742,27 @@ export interface ApiServicesAppUicustomizationsettingsChangethemewithdefaultvalu
 
 export interface ApiServicesAppUicustomizationsettingsChangedarkmodeofcurrentthemePostParams {
   isDarkModeActive?: boolean;
+}
+
+export interface ApiServicesAppUserGetusersGetParams {
+  Filter?: string;
+  Permissions?: string[];
+  /** @format int32 */
+  Role?: number;
+  OnlyLockedUsers?: boolean;
+  Sorting?: string;
+  /**
+   * @format int32
+   * @min 1
+   * @max 1000
+   */
+  MaxResultCount?: number;
+  /**
+   * @format int32
+   * @min 0
+   * @max 2147483647
+   */
+  SkipCount?: number;
 }
 
 export interface ApiServicesAppUserGetuserstoexcelGetParams {

@@ -9,6 +9,7 @@ import { ManagedUIProvider } from "@/services/managed-ui";
 import { UserProvider } from "@/services/user/provider";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 export function Providers({
   children,
@@ -31,7 +32,7 @@ export function Providers({
           <SettingsProvider initialCookieSettings={settings}>
             <UserProvider>
               <ManagedUIProvider>
-                {children}
+                <NuqsAdapter>{children}</NuqsAdapter>
                 <Toaster />
                 <ModalUI />
               </ManagedUIProvider>
