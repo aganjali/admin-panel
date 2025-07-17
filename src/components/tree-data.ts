@@ -15,16 +15,16 @@ export const treeData: TreeNode[] = [
     icon: IconFolder,
     children: [
       {
-        id: "roles",
-        name: "Roles",
-        icon: IconShield,
-        url: "/roles",
-      },
-      {
         id: "users",
         name: "Users",
         icon: IconUsers,
         url: "/users",
+      },
+      {
+        id: "roles",
+        name: "Roles",
+        icon: IconShield,
+        url: "/roles",
       },
     ],
   },

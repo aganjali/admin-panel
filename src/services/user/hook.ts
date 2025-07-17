@@ -10,7 +10,7 @@ interface Props {
   redirectToNotVerified?: string;
   useReturn?: boolean;
 }
-
+export type UserState = "loading" | "logged-in" | "logged-out";
 export const useUser = ({
   redirectTo = "",
   redirectIfFound = "",
@@ -29,21 +29,39 @@ export const useUser = ({
     throw new Error(`useUser must be used within a UserProvider`);
   }
   const { isAuthenticated, isLoading, user } = context;
+  const state: UserState = isLoading
+    ? "loading"
+    : isAuthenticated
+    ? redirectIfFound
+      ? "loading"
+      : "logged-in"
+    : redirectTo
+    ? "loading"
+    : "logged-out";
+  console.log({
+    isAuthenticated,
+    isLoading,
+    user,
+    state,
+    redirectTo,
+    redirectIfFound,
+    next,
+  });
 
   useIsoMorphicEffect(() => {
     // if no redirect needed, just return (example: already on /dashboard)
     // if user data not yet there (fetch in progress, logged in or not) then don't do anything yet
 
-    if ((!redirectTo && !redirectIfFound) || (!user && isLoading)) return;
+    if ((!redirectTo && !redirectIfFound) || isLoading) return;
 
-    if (redirectIfFound && user) {
+    if (redirectIfFound && isAuthenticated) {
       router.replace(
         typeof redirectIfFound === "boolean" ? next : redirectIfFound
       );
     } else if (
       // If redirectTo is set, redirect if the user was not found.
       redirectTo &&
-      !user
+      !isAuthenticated
     ) {
       router.replace(
         redirectTo +
@@ -58,12 +76,11 @@ export const useUser = ({
   }, [
     user,
     isLoading,
-    // needsKYC,
     isAuthenticated,
     redirectIfFound,
     redirectToNotVerified,
     redirectTo,
   ]);
 
-  return context;
+  return { ...context, state };
 };

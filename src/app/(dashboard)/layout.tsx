@@ -1,7 +1,7 @@
 import { AppSidebar } from "./components/app-sidebar";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { DashboardHeader } from "./components/header";
-import { ProtectedRoute } from "./components/protected-route";
+import { AuthGuard } from "@/components/guards/auth-gurad";
 
 export default function DashboardLayout({
   children,
@@ -9,13 +9,13 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ProtectedRoute>
+    <AuthGuard>
       <AppSidebar variant="inset">
         <SidebarInset variant="sticky-header">
           <DashboardHeader />
           {children}
         </SidebarInset>
       </AppSidebar>
-    </ProtectedRoute>
+    </AuthGuard>
   );
 }

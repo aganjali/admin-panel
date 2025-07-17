@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { type TreeNode } from "./tree-data";
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 interface NavTreeProps {
   nodes: TreeNode[];
@@ -177,8 +178,13 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
               }`}
             />
           </div>
+        ) : node.url ? (
+          <Link href={node.url} className="flex items-center">
+            <Icon className="mr-2 size-4" />
+            <span>{node.name}</span>
+          </Link>
         ) : (
-          <a href={node.url} className="flex items-center">
+          <a className="flex items-center">
             <Icon className="mr-2 size-4" />
             <span>{node.name}</span>
           </a>

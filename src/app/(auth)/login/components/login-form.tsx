@@ -1,18 +1,14 @@
 "use client";
 
-import type { ApiError } from "@/lib/http";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Loading from "@/components/loading";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import { useSearchParams } from "next/navigation";
 import { useMutation } from "@tanstack/react-query";
 import { useUser } from "@/services/user/hook";
 
@@ -32,31 +28,23 @@ export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"form">) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const next = searchParams?.get("next") ?? "";
-
-  const { isLoading: isLoadingUser, login } = useUser({
-    redirectIfFound: true,
-  });
+  const { login } = useUser();
 
   const doLogin = useMutation({
     mutationFn: login,
     onError: (error) => {
-      console.log((error as ApiError).code, { error });
       console.error("Login error:", error);
       toast.error(error.message ?? "Login failed");
     },
     onSuccess: () => {
-      router.push(next);
-      toast.success("Login successful");
+      // toast.success("Login successful");
     },
   });
 
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
   } = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -70,14 +58,6 @@ export function LoginForm({
       userNameOrEmailAddress: values.email,
       password: values.password,
     });
-  }
-
-  if (isLoadingUser) {
-    return (
-      <div className="flex justify-center items-center">
-        <Loading />
-      </div>
-    );
   }
 
   return (

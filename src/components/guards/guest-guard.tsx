@@ -7,18 +7,18 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
-export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isLoading, user } = useUser({
-    redirectTo: "/login",
+export function GuestGuard({ children }: ProtectedRouteProps) {
+  const { state } = useUser({
+    redirectIfFound: true,
   });
 
-  if (isLoading) {
+  if (state === "loading") {
     return (
       <Loading title="Authenticating" desc="Verifying your credentials..." />
     );
   }
 
-  if (!user) {
+  if (state === "logged-in") {
     return null;
   }
 
