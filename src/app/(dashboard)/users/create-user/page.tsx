@@ -27,6 +27,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { usersApi } from "@/lib/api/users";
 import type { CreateOrUpdateUserInput } from "@/types";
+import Loading from "@/components/loading";
 
 export default function CreateUser() {
   const router = useRouter();
@@ -87,6 +88,15 @@ export default function CreateUser() {
     });
     router.push("/users");
   };
+
+  if (createUser.isPending) {
+    return (
+      <Loading
+        title="Creating User"
+        desc="Please wait while we create the user account..."
+      />
+    );
+  }
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
@@ -310,7 +320,9 @@ export default function CreateUser() {
               <Button type="button" variant="outline">
                 Cancel
               </Button>
-              <Button type="submit">Create User</Button>
+              <Button type="submit" disabled={createUser.isPending}>
+                {createUser.isPending ? "Creating..." : "Create User"}
+              </Button>
             </div>
           </form>
         </CardContent>
