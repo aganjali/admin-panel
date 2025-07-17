@@ -3,19 +3,18 @@ import type { AuthenticateModel } from "@/types";
 
 import { useMemo, useEffect } from "react";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 
 import { UserContext } from "./context";
 
 import type { UserContextType } from "./context";
 import { authApi } from "@/lib/api/auth";
 import { http } from "@/lib/http";
+import { queryClient } from "@/lib/query";
 
 export const UserProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const queryClient = useQueryClient();
-
   // const onTokenUpdate = useLatestCallback((accessToken: string) => {
   //   http.setAuthTokens({
   //     accessToken,
