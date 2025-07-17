@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api/users";
@@ -11,14 +10,8 @@ import {
   parseAsString,
   parseAsArrayOf,
 } from "nuqs";
-import { UserTable } from "./components/table";
-import { Pagination } from "./components/pagination";
-import { SearchBar } from "./components/search-bar";
-import { Header } from "./components/header";
-import { FilterSidebar } from "./components/filter-sidebar";
 import { toast } from "sonner";
-
-const roleOptions = ["Admin", "User"];
+import { UsersDataTable } from "./components/data-table";
 
 const buildUserQueryParams = (params: {
   page: number;
@@ -41,7 +34,6 @@ const buildUserQueryParams = (params: {
 
 export default function UsersPage() {
   const router = useRouter();
-  const [filterSidebarOpen, setFilterSidebarOpen] = useState(false);
 
   const [urlParams, setUrlParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
@@ -51,11 +43,13 @@ export default function UsersPage() {
   });
 
   const queryClient = useQueryClient();
+
   const { data, isLoading, error } = useQuery({
     queryKey: ["users", urlParams],
     queryFn: () => usersApi.getUsers(buildUserQueryParams(urlParams)).fetch(),
     select: (res) => res.result,
   });
+
   const deleteUser = useMutation({
     mutationFn: (params: ApiServicesAppUserDeleteuserDeleteParams) =>
       usersApi.deleteUser(params).fetch(),
@@ -65,11 +59,9 @@ export default function UsersPage() {
     },
     onError: () => toast.error("Failed to delete user"),
   });
-  const users = data?.items ?? [];
-  const totalEntries = data?.totalCount ?? 0;
-  const totalPages = Math.ceil(totalEntries / urlParams.limit);
 
-  const activeFiltersCount = urlParams.roles.length;
+  const users = data?.items ?? [];
+  const totalCount = data?.totalCount ?? 0;
 
   if (error) {
     toast.error("Failed to load users");
@@ -86,40 +78,39 @@ export default function UsersPage() {
     }
   };
 
+  const handleSearchChange = (query: string) => {
+    setUrlParams({ search: query, page: 1 });
+  };
+
+  const handleRoleFilterChange = (roles: string[]) => {
+    setUrlParams({ roles, page: 1 });
+  };
+
+  const handlePageChange = (page: number) => {
+    setUrlParams({ page });
+  };
+
+  const handlePageSizeChange = (limit: number) => {
+    setUrlParams({ limit, page: 1 });
+  };
+
   return (
     <div className="min-h-screen">
-      <div className="mx-auto py-6 px-3 space-y-8">
-        <Header users={users} totalEntries={totalEntries} />
-
-        <SearchBar
-          searchQuery={urlParams.search ?? ""}
-          onSearchChange={(query) => setUrlParams({ search: query, page: 1 })}
-          onFilterToggle={() => setFilterSidebarOpen(true)}
-          activeFiltersCount={activeFiltersCount}
-        />
-
-        <FilterSidebar
-          open={filterSidebarOpen}
-          onOpenChange={setFilterSidebarOpen}
-          roleOptions={roleOptions}
-        />
-
-        <UserTable
-          users={users}
-          onUserAction={handleUserAction}
-          isDeleting={deleteUser.isPending}
+      <div className="mx-auto py-6 px-3">
+        <UsersDataTable
+          data={users}
+          totalCount={totalCount}
           isLoading={isLoading}
-        />
-
-        <Pagination
+          isDeleting={deleteUser.isPending}
+          searchValue={urlParams.search}
+          roleFilter={urlParams.roles}
           currentPage={urlParams.page}
-          totalPages={totalPages}
-          entriesPerPage={urlParams.limit.toString()}
-          totalEntries={totalEntries}
-          onPageChange={(page) => setUrlParams({ page })}
-          onEntriesPerPageChange={(limit) =>
-            setUrlParams({ limit: Number(limit), page: 1 })
-          }
+          pageSize={urlParams.limit}
+          onUserAction={handleUserAction}
+          onSearchChange={handleSearchChange}
+          onRoleFilterChange={handleRoleFilterChange}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
         />
       </div>
     </div>
