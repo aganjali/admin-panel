@@ -226,16 +226,16 @@ export function UsersDataTable({
             >
               <Table className="w-full table-fixed">
                 <colgroup>
-                  <col className="w-12" /> {/* drag */}
-                  <col className="w-32" /> {/* userName */}
-                  <col className="w-24" /> {/* firstName */}
-                  <col className="w-24" /> {/* surname */}
-                  <col className="w-28" /> {/* roles */}
-                  <col className="w-48" /> {/* emailAddress */}
-                  <col className="w-24" /> {/* isEmailConfirmed */}
-                  <col className="w-20" /> {/* isActive */}
-                  <col className="w-28" /> {/* creationTime */}
-                  <col className="w-16" /> {/* actions */}
+                  <col className="w-12" />
+                  <col className="w-32" />
+                  <col className="w-24" />
+                  <col className="w-24" />
+                  <col className="w-28" />
+                  <col className="w-48" />
+                  <col className="w-24" />
+                  <col className="w-20" />
+                  <col className="w-28" />
+                  <col className="w-16" />
                 </colgroup>
                 <TableHeader className="bg-muted sticky top-0 z-10">
                   {table.getHeaderGroups().map((headerGroup) => (
