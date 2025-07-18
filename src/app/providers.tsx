@@ -29,15 +29,17 @@ export function Providers({
           enableSystem
           disableTransitionOnChange
         >
-          <SettingsProvider initialCookieSettings={settings}>
-            <UserProvider>
-              <ManagedUIProvider>
-                <NuqsAdapter>{children}</NuqsAdapter>
-                <Toaster />
-                <ModalUI />
-              </ManagedUIProvider>
-            </UserProvider>
-          </SettingsProvider>
+          <NuqsAdapter>
+            <SettingsProvider initialCookieSettings={settings}>
+              <UserProvider>
+                <ManagedUIProvider>
+                  {children}
+                  <Toaster />
+                  <ModalUI />
+                </ManagedUIProvider>
+              </UserProvider>
+            </SettingsProvider>
+          </NuqsAdapter>
         </NextThemesProvider>
       </QueryClientProvider>
     </I18nProvider>

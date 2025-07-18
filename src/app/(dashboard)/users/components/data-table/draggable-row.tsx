@@ -32,7 +32,6 @@ export function DraggableRow({ row }: { row: Row<UserListDto> }) {
       {row.getVisibleCells().map((cell, cellIndex) => (
         <TableCell key={cell.id}>
           {cellIndex === 0 ? (
-            // First cell contains the drag handle
             <div className="flex items-center gap-2">
               <Button
                 {...attributes}

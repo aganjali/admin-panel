@@ -43,6 +43,7 @@ import { DraggableRow } from "./draggable-row";
 import { DataTableHeader } from "./header";
 import { DataTableToolbar } from "./toolbar";
 import { DataTablePagination } from "./pagination";
+import { cn } from "@/lib/utils";
 
 interface UsersDataTableProps {
   data: UserListDto[];
@@ -213,7 +214,7 @@ export function UsersDataTable({
             sensors={sensors}
             id={sortableId}
           >
-            <Table>
+            <Table className="w-[75vw]">
               <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
@@ -236,7 +237,9 @@ export function UsersDataTable({
                     <TableRow key={`skeleton-${i}`}>
                       {columns.map((_, j) => (
                         <TableCell key={`skeleton-cell-${i}-${j}`}>
-                          <Skeleton className="h-6 w-full" />
+                          <Skeleton
+                            className={cn("h-6", j === 0 ? "w-6" : "w-full")}
+                          />
                         </TableCell>
                       ))}
                     </TableRow>

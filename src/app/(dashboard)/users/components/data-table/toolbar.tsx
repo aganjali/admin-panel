@@ -18,9 +18,11 @@ import {
   IconLayoutColumns,
   IconChevronDown,
 } from "@tabler/icons-react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Shield } from "lucide-react";
 import { Table } from "@tanstack/react-table";
 import { UserListDto } from "@/types";
+import { useUI } from "@/services/managed-ui";
+import { useQueryState } from "nuqs";
 
 interface DataTableToolbarProps {
   searchValue: string;
@@ -41,6 +43,18 @@ export function DataTableToolbar({
   onSearchChange,
   onRoleFilterChange,
 }: DataTableToolbarProps) {
+  const { openModal, setModalView } = useUI();
+
+  // Get permissions query parameter
+  const [permissionFilter] = useQueryState("permissions", {
+    serialize: (value: string[]) => value.join(","),
+    parse: (value: string) => (value ? value.split(",") : []),
+    shallow: true,
+  });
+
+  const hasPermissionFilter = permissionFilter && permissionFilter.length > 0;
+  const permissionCount = hasPermissionFilter ? permissionFilter.length : 0;
+
   return (
     <div className="flex items-center gap-4 mt-4">
       <div className="relative flex-1 max-w-sm">
@@ -108,6 +122,26 @@ export function DataTableToolbar({
             })}
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button
+        variant={hasPermissionFilter ? "secondary" : "outline"}
+        onClick={() => {
+          setModalView({
+            name: "FILTER_PERMISSIONS",
+            args: {},
+            props: { cancelable: true },
+          });
+          openModal();
+        }}
+        className={hasPermissionFilter ? "relative" : ""}
+      >
+        <Shield className="h-5 w-5" />
+        <span>Filter by Permissions</span>
+        {hasPermissionFilter && (
+          <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
+            {permissionCount}
+          </span>
+        )}
+      </Button>
     </div>
   );
 }

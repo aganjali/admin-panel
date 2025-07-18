@@ -20,6 +20,7 @@ const buildUserQueryParams = (params: {
   limit: number;
   search?: string;
   roles?: string[];
+  permissions?: string[];
   sorting?: Array<{ id: string; desc: boolean }>;
 }) => {
   const ROLE_NAME_TO_ID: Record<string, number> = { Admin: 2, User: 3 };
@@ -45,7 +46,14 @@ const buildUserQueryParams = (params: {
     }
   }
 
-  return {
+  const permissions =
+    params.permissions && params.permissions.length > 0
+      ? params.permissions.filter(
+          (p) => typeof p === "string" && p.trim() !== ""
+        )
+      : undefined;
+
+  const queryParams: any = {
     SkipCount: (params.page - 1) * params.limit,
     MaxResultCount: params.limit,
     Filter: params.search,
@@ -55,6 +63,14 @@ const buildUserQueryParams = (params: {
         ? ROLE_NAME_TO_ID[params.roles[0]]
         : undefined,
   };
+
+  if (permissions && permissions.length > 0) {
+    permissions.forEach((permission, index) => {
+      queryParams[`Permissions[${index}]`] = permission;
+    });
+  }
+
+  return queryParams;
 };
 
 export default function UsersPage() {
@@ -66,6 +82,7 @@ export default function UsersPage() {
     limit: parseAsInteger.withDefault(15),
     search: parseAsString.withDefault(""),
     roles: parseAsArrayOf(parseAsString).withDefault([]),
+    permissions: parseAsArrayOf(parseAsString, ",").withDefault([]),
     sorting: parseAsJson((value: any): Array<{ id: string; desc: boolean }> => {
       if (Array.isArray(value)) {
         return value.filter(
@@ -163,7 +180,7 @@ export default function UsersPage() {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <div className="mx-auto py-6 px-3">
         <UsersDataTable
           data={users}

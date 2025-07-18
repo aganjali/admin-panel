@@ -20,7 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { SortableHeader } from "./Sortable-header";
+import { SortableHeader } from "./sortable-header";
 
 type OnUserAction = (userId: number, action: string) => void;
 
