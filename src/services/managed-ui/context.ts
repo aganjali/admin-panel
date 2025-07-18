@@ -20,6 +20,8 @@ export interface UserPermissionsViewArgs {
 
 export interface FilterPermissionsViewArgs {}
 
+export interface ImportExcelViewArgs {}
+
 export type MODAL_ARGS =
   | {
       name: "WALLET_PASSWORD";
@@ -36,6 +38,10 @@ export type MODAL_ARGS =
   | {
       name: "FILTER_PERMISSIONS";
       args: FilterPermissionsViewArgs;
+    }
+  | {
+      name: "IMPORT_EXCEL";
+      args: ImportExcelViewArgs;
     };
 
 export type ModalProps = DialogContentProps & {

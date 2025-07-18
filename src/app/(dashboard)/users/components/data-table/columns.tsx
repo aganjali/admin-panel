@@ -31,7 +31,7 @@ export const getColumns = (
   {
     id: "drag",
     header: () => null,
-    cell: () => null, // Handled in DraggableRow
+    cell: () => null,
     size: 40,
     enableSorting: false,
   },
@@ -44,14 +44,16 @@ export const getColumns = (
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3">
-          <Avatar className="w-8 h-8 border-2">
+        <div className="flex items-center gap-3 min-w-0">
+          <Avatar className="w-8 h-8 border-2 flex-shrink-0">
             <AvatarFallback>
               {user.name?.charAt(0).toUpperCase()}
               {user.surname?.charAt(0).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <span className="font-medium">{user.name}</span>
+          <span className="font-medium truncate" title={user.name ?? ""}>
+            {user.name}
+          </span>
         </div>
       );
     },
@@ -64,7 +66,11 @@ export const getColumns = (
     header: ({ column }) => (
       <SortableHeader column={column}>First Name</SortableHeader>
     ),
-    cell: ({ row }) => <span>{row.original.name}</span>,
+    cell: ({ row }) => (
+      <span className="truncate block" title={row.original.name ?? ""}>
+        {row.original.name}
+      </span>
+    ),
     enableSorting: true,
   },
   {
@@ -72,7 +78,11 @@ export const getColumns = (
     header: ({ column }) => (
       <SortableHeader column={column}>Surname</SortableHeader>
     ),
-    cell: ({ row }) => <span>{row.original.surname}</span>,
+    cell: ({ row }) => (
+      <span className="truncate block" title={row.original.surname ?? ""}>
+        {row.original.surname}
+      </span>
+    ),
     enableSorting: true,
   },
   {
@@ -115,7 +125,11 @@ export const getColumns = (
     header: ({ column }) => (
       <SortableHeader column={column}>Email Address</SortableHeader>
     ),
-    cell: ({ row }) => <span>{row.original.emailAddress}</span>,
+    cell: ({ row }) => (
+      <span className="truncate block" title={row.original.emailAddress ?? ""}>
+        {row.original.emailAddress}
+      </span>
+    ),
     enableSorting: true,
   },
   {

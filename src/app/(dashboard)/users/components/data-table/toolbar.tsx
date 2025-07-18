@@ -1,3 +1,5 @@
+"use client";
+
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,18 +13,24 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IconSearch, IconChevronDown } from "@tabler/icons-react";
 import {
-  IconSearch,
-  IconLayoutColumns,
-  IconChevronDown,
-} from "@tabler/icons-react";
-import { Loader2, Shield } from "lucide-react";
-import { Table } from "@tanstack/react-table";
-import { UserListDto } from "@/types";
+  Loader2,
+  Shield,
+  FileSpreadsheet,
+  Settings2,
+  RotateCcw,
+  Upload,
+  Download,
+} from "lucide-react";
+import type { Table } from "@tanstack/react-table";
+import type { UserListDto } from "@/types";
 import { useUI } from "@/services/managed-ui";
 import { useQueryState } from "nuqs";
+import { useRouter } from "next/navigation";
 
 interface DataTableToolbarProps {
   searchValue: string;
@@ -32,6 +40,9 @@ interface DataTableToolbarProps {
   table: Table<UserListDto>;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
+  onImportExcel?: () => void;
+  onExportExcel?: () => void;
+  isExporting?: boolean;
 }
 
 export function DataTableToolbar({
@@ -42,11 +53,14 @@ export function DataTableToolbar({
   table,
   onSearchChange,
   onRoleFilterChange,
+  onImportExcel,
+  onExportExcel,
+  isExporting = false,
 }: DataTableToolbarProps) {
   const { openModal, setModalView } = useUI();
+  const router = useRouter();
 
-  // Get permissions query parameter
-  const [permissionFilter] = useQueryState("permissions", {
+  const [permissionFilter, setPermissionFilter] = useQueryState("permissions", {
     serialize: (value: string[]) => value.join(","),
     parse: (value: string) => (value ? value.split(",") : []),
     shallow: true,
@@ -55,93 +69,175 @@ export function DataTableToolbar({
   const hasPermissionFilter = permissionFilter && permissionFilter.length > 0;
   const permissionCount = hasPermissionFilter ? permissionFilter.length : 0;
 
+  const hasActiveFilters =
+    searchValue || roleFilter.length > 0 || hasPermissionFilter;
+
+  const handleReset = () => {
+    // Clear all filters and query params
+    onSearchChange("");
+    onRoleFilterChange([]);
+    setPermissionFilter(null); // Clear permissions query param
+
+    // Optional: Navigate to clean URL without query params
+    const currentPath = window.location.pathname;
+    router.push(currentPath);
+  };
+
   return (
-    <div className="flex items-center gap-4 mt-4">
-      <div className="relative flex-1 max-w-sm">
-        {isSearching ? (
-          <Loader2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
-        ) : (
-          <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        )}
-        <Input
-          placeholder="Search users..."
-          value={searchValue}
-          onChange={(e) => onSearchChange(e.target.value)}
-          className="pl-9"
-        />
+    <div className="flex items-center justify-between gap-4 mt-4">
+      {/* Left side - Search and Filters */}
+      <div className="flex items-center gap-4 flex-1">
+        <div className="relative w-full max-w-sm">
+          {isSearching ? (
+            <Loader2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
+          ) : (
+            <IconSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          )}
+          <Input
+            placeholder="Search users..."
+            value={searchValue}
+            onChange={(e) => onSearchChange(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <Select
+          value={roleFilter.length > 0 ? roleFilter[0] : "all"}
+          onValueChange={(value) => {
+            const roles = value === "all" ? [] : [value];
+            onRoleFilterChange(roles);
+          }}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Filter by role">
+              {roleFilter.length > 0 ? roleFilter[0] : "All roles"}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All roles</SelectItem>
+            {roleOptions.map((role) => (
+              <SelectItem key={role} value={role}>
+                {role}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Button
+          variant={hasPermissionFilter ? "secondary" : "outline"}
+          onClick={() => {
+            setModalView({
+              name: "FILTER_PERMISSIONS",
+              args: {},
+              props: { cancelable: true },
+            });
+            openModal();
+          }}
+          className={hasPermissionFilter ? "relative" : ""}
+        >
+          <Shield className="h-5 w-5" />
+          <span>Filter by Permissions</span>
+          {hasPermissionFilter && (
+            <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
+              {permissionCount}
+            </span>
+          )}
+        </Button>
       </div>
-      <Select
-        value={roleFilter.length > 0 ? roleFilter[0] : "all"}
-        onValueChange={(value) => {
-          const roles = value === "all" ? [] : [value];
-          onRoleFilterChange(roles);
-        }}
-      >
-        <SelectTrigger className="w-48">
-          <SelectValue placeholder="Filter by role">
-            {roleFilter.length > 0 ? roleFilter[0] : "All roles"}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="all">All roles</SelectItem>
-          {roleOptions.map((role) => (
-            <SelectItem key={role} value={role}>
-              {role}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="w-max justify-between">
-            <div className="flex items-center gap-2">
-              <IconLayoutColumns className="h-4 w-4" />
-              <span>Customise Columns</span>
-            </div>
-            <IconChevronDown className="h-4 w-4" />
+
+      {/* Right side - Actions */}
+      <div className="flex items-center gap-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-max justify-between bg-transparent"
+            >
+              <div className="flex items-center gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                <span>Excel</span>
+              </div>
+              <IconChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center">
+            <DropdownMenuItem
+              onClick={() => {
+                console.log("Import Excel menu item clicked", onImportExcel); // Debug log
+                onImportExcel?.();
+              }}
+              className="cursor-pointer"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              <span>Import Excel</span>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem
+              onClick={() => {
+                console.log("Export Excel menu item clicked", onExportExcel);
+                onExportExcel?.();
+              }}
+              className="cursor-pointer"
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              <span>{isExporting ? "Exporting..." : "Export Excel"}</span>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-max justify-between bg-transparent"
+            >
+              <div className="flex items-center gap-2">
+                <Settings2 className="h-4 w-4" />
+                <span>View</span>
+              </div>
+              <IconChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="center">
+            {table
+              .getAllColumns()
+              .filter(
+                (column) =>
+                  typeof column.accessorFn !== "undefined" &&
+                  column.getCanHide()
+              )
+              .map((column) => {
+                return (
+                  <DropdownMenuCheckboxItem
+                    key={column.id}
+                    className="capitalize"
+                    checked={column.getIsVisible()}
+                    onCheckedChange={(value) =>
+                      column.toggleVisibility(!!value)
+                    }
+                  >
+                    {column.id}
+                  </DropdownMenuCheckboxItem>
+                );
+              })}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        {hasActiveFilters && (
+          <Button
+            variant="secondary"
+            onClick={handleReset}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            <span>Reset</span>
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-56">
-          {table
-            .getAllColumns()
-            .filter(
-              (column) =>
-                typeof column.accessorFn !== "undefined" && column.getCanHide()
-            )
-            .map((column) => {
-              return (
-                <DropdownMenuCheckboxItem
-                  key={column.id}
-                  className="capitalize"
-                  checked={column.getIsVisible()}
-                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                >
-                  {column.id}
-                </DropdownMenuCheckboxItem>
-              );
-            })}
-        </DropdownMenuContent>
-      </DropdownMenu>
-      <Button
-        variant={hasPermissionFilter ? "secondary" : "outline"}
-        onClick={() => {
-          setModalView({
-            name: "FILTER_PERMISSIONS",
-            args: {},
-            props: { cancelable: true },
-          });
-          openModal();
-        }}
-        className={hasPermissionFilter ? "relative" : ""}
-      >
-        <Shield className="h-5 w-5" />
-        <span>Filter by Permissions</span>
-        {hasPermissionFilter && (
-          <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
-            {permissionCount}
-          </span>
         )}
-      </Button>
+      </div>
     </div>
   );
 }

@@ -114,6 +114,42 @@ export default function UsersPage() {
     onError: () => toast.error("Failed to delete user"),
   });
 
+  const exportToExcel = useMutation({
+    mutationFn: async () => {
+      const exportParams = {
+        Filter: urlParams.search || undefined,
+        Permissions:
+          urlParams.permissions.length > 0 ? urlParams.permissions : undefined,
+        Role:
+          urlParams.roles.length > 0
+            ? { Admin: 2, User: 3 }[urlParams.roles[0]]
+            : undefined,
+        Sorting:
+          urlParams.sorting.length > 0
+            ? `${urlParams.sorting[0].id} ${
+                urlParams.sorting[0].desc ? "DESC" : "ASC"
+              }`
+            : undefined,
+        SelectedColumns: ["Name", "Surname", "UserName"],
+      };
+
+      const response = await usersApi.getUsersToExcel(exportParams).fetch();
+      console.log("Export response:", response);
+      return response.result;
+    },
+    onSuccess: async (fileDto) => {
+      //TODO: Download the file
+      console.log(fileDto.fileName);
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to export users";
+      toast.error(message);
+    },
+  });
+
   const users = data?.items ?? [];
   const totalCount = data?.totalCount ?? 0;
 
@@ -157,6 +193,21 @@ export default function UsersPage() {
     }
   };
 
+  const handleImportExcel = () => {
+    console.log("Import Excel clicked");
+    setModalView({
+      name: "IMPORT_EXCEL",
+      args: {},
+      props: { cancelable: true },
+    });
+    openModal();
+  };
+
+  const handleExportExcel = () => {
+    console.log("Export Excel clicked");
+    exportToExcel.mutate();
+  };
+
   const handleSearchChange = (query: string) => {
     setUrlParams({ search: query, page: 1 });
   };
@@ -198,6 +249,9 @@ export default function UsersPage() {
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           onSortingChange={handleSortingChange}
+          onImportExcel={handleImportExcel}
+          onExportExcel={handleExportExcel}
+          isExporting={exportToExcel.isPending}
         />
       </div>
     </div>
