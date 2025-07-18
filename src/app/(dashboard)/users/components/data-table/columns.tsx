@@ -20,9 +20,98 @@ import {
 import { Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import { SortableHeader } from "./sortable-header";
+import { ReactElement, useContext } from "react";
+import { UserContext } from "@/services/user/context";
+import { perms } from "@/lib/perms";
 
 type OnUserAction = (userId: number, action: string) => void;
 
+interface ActionsListProp {
+  user: UserListWithAvatarDto;
+  isDeleting: boolean;
+  onUserAction: OnUserAction;
+}
+function ActionsList({ user, isDeleting, onUserAction }: ActionsListProp) {
+  const { checkPerms } = useContext(UserContext);
+  const items: ReactElement[] = [];
+  if (
+    checkPerms({
+      list: [perms.adminPanel.administration.users.changePermissions],
+    })
+  ) {
+    items.push(
+      <DropdownMenuItem
+        key={"change-perm"}
+        onClick={() => onUserAction(user.id ?? 0, "permissions")}
+      >
+        <IconShield className="w-4 h-4 mr-2" />
+        Permissions
+      </DropdownMenuItem>
+    );
+  }
+  if (
+    checkPerms({
+      list: [perms.adminPanel.administration.users.edit],
+    })
+  ) {
+    if (items.length) {
+      items.push(<DropdownMenuSeparator key="sep-edit" />);
+    }
+    items.push(
+      <DropdownMenuItem
+        key={"edit"}
+        onClick={() => onUserAction(user.id ?? 0, "edit")}
+      >
+        <IconEdit className="w-4 h-4 mr-2" />
+        Edit
+      </DropdownMenuItem>
+    );
+  }
+  if (
+    checkPerms({
+      list: [perms.adminPanel.administration.users.delete],
+    })
+  ) {
+    if (items.length) {
+      items.push(<DropdownMenuSeparator key="sep-delete" />);
+    }
+    items.push(
+      <DropdownMenuItem
+        key={"delete"}
+        variant="destructive"
+        onClick={() => onUserAction(user.id ?? 0, "delete")}
+        disabled={isDeleting}
+      >
+        {isDeleting ? (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        ) : (
+          <IconTrash className="w-4 h-4 mr-2" />
+        )}
+        Delete
+      </DropdownMenuItem>
+    );
+  }
+  if (!items.length) return null;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
+          size="icon"
+          disabled={isDeleting}
+        >
+          <IconDotsVertical />
+          <span className="sr-only">Open menu</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-max">
+        {items}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 export const getColumns = (
   onUserAction: OnUserAction,
   isDeleting: boolean
@@ -207,54 +296,12 @@ export const getColumns = (
     header: "Actions",
     enableSorting: false,
     cell: ({ row }) => {
-      const user = row.original;
       return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="data-[state=open]:bg-muted text-muted-foreground flex size-8"
-              size="icon"
-              disabled={isDeleting}
-            >
-              <IconDotsVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-max">
-            {/* <DropdownMenuItem
-              onClick={() => onUserAction(user.id ?? 0, "login")}
-            >
-              <IconLogin className="w-4 h-4 mr-2" />
-              Login as this user
-            </DropdownMenuItem> */}
-            <DropdownMenuItem
-              onClick={() => onUserAction(user.id ?? 0, "permissions")}
-            >
-              <IconShield className="w-4 h-4 mr-2" />
-              Permissions
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => onUserAction(user.id ?? 0, "edit")}
-            >
-              <IconEdit className="w-4 h-4 mr-2" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onUserAction(user.id ?? 0, "delete")}
-              disabled={isDeleting}
-            >
-              {isDeleting ? (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              ) : (
-                <IconTrash className="w-4 h-4 mr-2" />
-              )}
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ActionsList
+          user={row.original}
+          isDeleting={isDeleting}
+          onUserAction={onUserAction}
+        />
       );
     },
     enableHiding: false,
