@@ -33,13 +33,16 @@ export function DraggableRow({ row }: { row: Row<UserListWithAvatarDto> }) {
       {row.getVisibleCells().map((cell, cellIndex) => {
         const isDragColumn = cellIndex === 0;
         const isUserNameColumn = cellIndex === 1;
+        const isActionColumn = cell.column.id === "actions";
 
         return (
           <TableCell
             key={cell.id}
             className={cn(
               isDragColumn && "px-2 py-2 w-auto",
-              !isDragColumn && "px-3 py-2 whitespace-nowrap w-auto"
+              !isDragColumn && "px-3 py-2 whitespace-nowrap w-aut",
+              isActionColumn &&
+                "sticky -right-0.5 bg-background z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
             )}
           >
             {cellIndex === 0 ? (

@@ -312,11 +312,14 @@ export const getColumns = (
 
   {
     id: "actions",
-    header: "Actions",
+    // header: "Actions",
+    header: () => null,
     enableSorting: false,
+    size: 80,
+    minSize: 80,
     cell: ({ row }) => {
       return (
-        <div className="w-max">
+        <div className="w-max  flex justify-center">
           <ActionsList
             user={row.original}
             isDeleting={isDeleting}

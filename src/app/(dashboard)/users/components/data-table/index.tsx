@@ -223,7 +223,7 @@ export function UsersDataTable({
         </div>
 
         <div className="w-full">
-          <div className="overflow-auto rounded-lg border">
+          <div className="overflow-x-auto rounded-lg border scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border">
             <DndContext
               collisionDetection={closestCenter}
               modifiers={[restrictToVerticalAxis]}
@@ -231,12 +231,13 @@ export function UsersDataTable({
               sensors={sensors}
               id={sortableId}
             >
-              <Table className="w-auto min-w-full table-auto">
+              <Table className="w-auto min-w-full table-auto relative">
                 <TableHeader className="bg-muted sticky top-0 z-10">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
                       {headerGroup.headers.map((header, headerIndex) => {
                         const isDragColumn = headerIndex === 0;
+                        const isActionColumn = header.column.id === "actions";
 
                         return (
                           <TableHead
@@ -245,7 +246,9 @@ export function UsersDataTable({
                             className={cn(
                               isDragColumn
                                 ? "text-center px-2 py-2 w-auto"
-                                : "text-left px-3 py-2 whitespace-nowrap w-auto"
+                                : "text-left px-3 py-2 whitespace-nowrap w-auto",
+                              isActionColumn &&
+                                "sticky -right-0.5 bg-muted z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
                             )}
                           >
                             <div className="flex items-center w-max">
