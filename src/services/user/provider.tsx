@@ -1,10 +1,5 @@
 "use client";
-import type {
-  ApiResponse,
-  AuthenticateModel,
-  GetCurrentLoginInformationsOutput,
-  GetUserPermissionsForEditOutput,
-} from "@/types";
+import type { ApiResponse, AuthenticateModel } from "@/types";
 
 import { useMemo, useEffect } from "react";
 import { useLatestCallback } from "@/hooks/use-latest-callback";
@@ -16,43 +11,58 @@ import type { UserContextType } from "./context";
 import { authApi } from "@/lib/api/auth";
 import { http } from "@/lib/http";
 import { queryClient } from "@/lib/query";
-import { usersApi } from "@/lib/api/users";
 import { useRouter } from "next/navigation";
+import { permissionsApi } from "@/lib/api/permissions";
+import { getAvatar } from "@/lib/imgs";
 
 export const UserProvider: React.FC<{
   children: React.ReactNode;
-  permissions: ApiResponse<GetUserPermissionsForEditOutput> | null;
-  loginInfo: ApiResponse<GetCurrentLoginInformationsOutput> | null;
-}> = ({ children, loginInfo: initialLoginInfo, permissions: initialPerms }) => {
+  permissions: ApiResponse<string[]> | null;
+  // loginInfo: ApiResponse<GetCurrentLoginInformationsOutput> | null;
+}> = ({ children, permissions: initialPerms }) => {
   const router = useRouter();
   const {
     data: profile = null,
     refetch: refreshUser,
     isPending,
   } = useQuery({
-    queryKey: ["login-info"],
+    queryKey: ["profile"],
     queryFn: () => authApi.currentLoginInfo().fetch(),
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     retry: false,
-    select: (s) => s.result,
-    initialData: initialLoginInfo ?? undefined,
+    select: (s) => ({
+      ...s.result,
+      user: s.result.user
+        ? {
+            ...s.result.user,
+            id: s.result.user.id ?? 0,
+            avatar: s.result.user.id ? getAvatar(s.result.user.id) : "",
+            fullName: (
+              (s.result.user.name ?? "") +
+              " " +
+              (s.result.user.surname ?? "")
+            ).trim(),
+            initials:
+              (s.result.user.name?.charAt(0).toUpperCase() ?? "") +
+              (s.result.user.surname?.charAt(0).toUpperCase() ?? ""),
+          }
+        : null,
+    }),
+    // initialData: initialLoginInfo ?? undefined,
   });
   const user = profile?.user ?? null;
 
   const { data: perms = null } = useQuery({
-    queryKey: ["permissions"],
-    enabled: !!user?.id,
-    queryFn: () => usersApi.getUserPermissionsForEdit({ Id: user?.id }).fetch(),
+    queryKey: ["granted-permissions"],
+    queryFn: () => permissionsApi.grantedPermissions().fetch(),
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    initialData: initialPerms ?? undefined,
-    select: (s) => s.result,
+    placeholderData: initialPerms ?? undefined,
+    select: (s) => Object.fromEntries(s.result.map((item) => [item, true])),
     staleTime: Number.POSITIVE_INFINITY,
   });
-  const permissions = perms?.permissions ?? null;
-  const grantedPermissions = perms?.grantedPermissionNames ?? null;
-  // loginInfo?.
+
   const onAuthFailed = useLatestCallback(async () => {
     console.log("auth failed");
     http.setAuthTokens(null);
@@ -101,8 +111,7 @@ export const UserProvider: React.FC<{
       user: user,
       isLoading: isPending,
       isAuthenticated,
-      allPermissions: permissions ?? [],
-      grantedPermissions: grantedPermissions ?? [],
+      grantedPermissions: perms ?? {},
       isActive,
       login,
       logout,
@@ -112,8 +121,8 @@ export const UserProvider: React.FC<{
       user,
       isPending,
       isAuthenticated,
-      permissions,
-      grantedPermissions,
+      perms,
+      // grantedPermissions,
       isActive,
       login,
       logout,

@@ -6,13 +6,8 @@ import "@/styles/globals.css";
 import { detectLanguage } from "@/lib/locales/server";
 import { detectCookieSettings } from "@/lib/settings/server";
 import { http } from "@/lib/http";
-import { authApi } from "@/lib/api/auth";
-import {
-  ApiResponse,
-  GetCurrentLoginInformationsOutput,
-  GetUserPermissionsForEditOutput,
-} from "@/types";
-import { usersApi } from "@/lib/api/users";
+import { ApiResponse } from "@/types";
+import { permissionsApi } from "@/lib/api/permissions";
 // import { ColorThemeProvider } from "@/components/color-theme-provider";
 
 const geistSans = Geist({
@@ -37,15 +32,11 @@ export default async function RootLayout({
 }>) {
   const lang = await detectLanguage();
   const settings = await detectCookieSettings();
-  let loginInfo: ApiResponse<GetCurrentLoginInformationsOutput> | null = null;
-  let permissions: ApiResponse<GetUserPermissionsForEditOutput> | null = null;
+  // let loginInfo: ApiResponse<GetCurrentLoginInformationsOutput> | null = null;
+  let permissions: ApiResponse<string[]> | null = null;
   console.log("refetch");
   try {
-    loginInfo = await authApi.currentLoginInfo().fetch();
-    if (loginInfo.result?.user?.id)
-      permissions = await usersApi
-        .getUserPermissionsForEdit({ Id: loginInfo.result?.user.id })
-        .fetch();
+    permissions = await permissionsApi.grantedPermissions().fetch();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {}
 
@@ -60,7 +51,7 @@ export default async function RootLayout({
           lang={lang}
           settings={settings}
           permissions={permissions}
-          loginInfo={loginInfo}
+          // loginInfo={loginInfo}
         >
           {children}
         </Providers>

@@ -1,6 +1,5 @@
 import type {
   AuthenticateModel,
-  FlatPermissionDto,
   GetCurrentLoginInformationsOutput,
   UserLoginInfoDto,
 } from "@/types";
@@ -11,16 +10,25 @@ import type {
 
 // context.tsx
 import { createContext } from "react";
-
+export type UserDto = Omit<UserLoginInfoDto, "profilePictureId"> & {
+  fullName: string;
+  initials: string;
+  id: number;
+  avatar: string;
+};
+export type CurrentLoginInformationDto = Omit<
+  GetCurrentLoginInformationsOutput,
+  "user"
+> & { user: UserDto | null };
 export interface UserState {
-  user: UserLoginInfoDto | null;
+  user: UserDto | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   // canTrade: boolean;
   // needsKYC: boolean;
   isActive: boolean;
-  grantedPermissions: string[];
-  allPermissions: FlatPermissionDto[];
+  grantedPermissions: Record<string, boolean>;
+  // allPermissions: FlatPermissionDto[];
 }
 
 export interface UserActions {
@@ -28,7 +36,7 @@ export interface UserActions {
   logout: () => Promise<void>;
   refreshUser: (
     options?: RefetchOptions
-  ) => Promise<QueryObserverResult<GetCurrentLoginInformationsOutput, Error>>;
+  ) => Promise<QueryObserverResult<CurrentLoginInformationDto, Error>>;
 }
 
 export type UserContextType = UserState & UserActions;
@@ -40,8 +48,8 @@ const defaultState: UserState = {
   // canTrade: false,
   // needsKYC: false,
   isActive: false,
-  allPermissions: [],
-  grantedPermissions: [],
+  // allPermissions: [],
+  grantedPermissions: {},
 };
 
 const defaultActions: UserActions = {

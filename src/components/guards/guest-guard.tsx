@@ -13,9 +13,7 @@ export function GuestGuard({ children }: ProtectedRouteProps) {
   });
 
   if (state === "loading") {
-    return (
-      <Loading title="Authenticating" desc="Verifying your credentials..." />
-    );
+    return <Loading title="Loading" desc="Please wait..." />;
   }
 
   if (state === "logged-in") {

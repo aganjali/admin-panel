@@ -3,19 +3,43 @@ import { useIsoMorphicEffect } from "@/hooks/use-isomorphic-effect";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
 import { UserContext } from "./context";
+import { useLatestCallback } from "@/hooks/use-latest-callback";
 
+export type UseReturnType = "current" | "next" | "none";
 interface Props {
   redirectTo?: string;
   redirectIfFound?: string | boolean;
-  redirectToNotVerified?: string;
-  useReturn?: boolean;
+  useReturn?: UseReturnType;
+  perms?: (CheckPermsFnArgs & CommonArgs) | null;
 }
+
 export type UserState = "loading" | "logged-in" | "logged-out";
+type CommonArgs = {
+  redirectToNotAccess?: string | boolean;
+};
+type DefaultArgs = {
+  list: (string | string[])[];
+  type?: "default";
+};
+type SimpleArgs = { list: string[]; type: "and" | "or" };
+type SingleArgs = { list: [string]; type: "single" };
+
+/**
+ * Check if user granted the list of permissions.
+ *
+ * @param perms - list of permissions to check
+ * @param type - "default" | "and" | "or" (default: "default")
+ * @returns true if granted, otherwise false
+ */
+export type CheckPermsFnArgs = DefaultArgs | SimpleArgs | SingleArgs;
+
+export type CheckPermsFn = (args: CheckPermsFnArgs) => boolean;
+
 export const useUser = ({
   redirectTo = "",
   redirectIfFound = "",
-  redirectToNotVerified = "",
-  useReturn = !redirectIfFound,
+  useReturn = !redirectIfFound ? "current" : "none",
+  perms = null,
 }: Props = {}) => {
   const context = useContext(UserContext);
   const router = useRouter();
@@ -29,7 +53,32 @@ export const useUser = ({
     throw new Error(`useUser must be used within a UserProvider`);
   }
   const { isAuthenticated, isLoading, user } = context;
-  const state: UserState = isLoading
+
+  const checkPerms: CheckPermsFn = useLatestCallback(
+    ({ list, type = "default" }) => {
+      if (type === "single")
+        return context.grantedPermissions[(list as [string])[0]] ?? false;
+      if (type === "and") {
+        return (list as string[]).every(
+          (f) => context.grantedPermissions[f] ?? false
+        );
+      }
+
+      if (type === "or") {
+        return (list as string[]).some(
+          (f) => context.grantedPermissions[f] ?? false
+        );
+      }
+
+      return !(list as string[] | (string | string[])[]).every((e) =>
+        Array.isArray(e)
+          ? e.some((f) => context.grantedPermissions[f] ?? false)
+          : context.grantedPermissions[e] ?? false
+      );
+    }
+  );
+
+  const partialState: UserState = isLoading
     ? "loading"
     : isAuthenticated
     ? redirectIfFound
@@ -38,12 +87,28 @@ export const useUser = ({
     : redirectTo
     ? "loading"
     : "logged-out";
+  const isLoggedIn = partialState === "logged-in";
+  const hasAccess = isLoggedIn && perms ? checkPerms(perms) : false;
+
+  const state: UserState = isLoggedIn
+    ? !hasAccess && perms?.redirectToNotAccess
+      ? "loading"
+      : partialState
+    : partialState;
+  const redirectToNotAccess = perms?.redirectToNotAccess ?? "";
+  const useReturnUrl =
+    useReturn === "current"
+      ? `?next=${encodeURIComponent(asPath + (q ? "?" + q : ""))}`
+      : useReturn === "next"
+      ? `?next=${encodeURIComponent(next)}`
+      : "";
 
   useIsoMorphicEffect(() => {
     // if no redirect needed, just return (example: already on /dashboard)
     // if user data not yet there (fetch in progress, logged in or not) then don't do anything yet
 
-    if ((!redirectTo && !redirectIfFound) || isLoading) return;
+    if ((!redirectTo && !redirectIfFound && !redirectToNotAccess) || isLoading)
+      return;
 
     if (redirectIfFound && isAuthenticated) {
       router.replace(
@@ -54,24 +119,24 @@ export const useUser = ({
       redirectTo &&
       !isAuthenticated
     ) {
+      router.replace(redirectTo + useReturnUrl);
+    } else if (redirectToNotAccess && !hasAccess) {
+      console.log();
       router.replace(
-        redirectTo +
-          (useReturn
-            ? `?next=${encodeURIComponent(asPath + (q ? "?" + q : ""))}`
-            : "")
+        (typeof redirectToNotAccess === "boolean"
+          ? "/errors/503"
+          : redirectToNotAccess) + useReturnUrl
       );
     }
-    // else if (redirectToNotVerified && needsKYC) {
-    //   router.replace(redirectToNotVerified);
-    // }
   }, [
     user,
     isLoading,
     isAuthenticated,
+    hasAccess,
     redirectIfFound,
-    redirectToNotVerified,
     redirectTo,
+    redirectToNotAccess,
   ]);
 
-  return { ...context, state };
+  return { ...context, state, checkPerms, hasAccess };
 };
