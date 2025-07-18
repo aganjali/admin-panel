@@ -10,6 +10,7 @@ import {
   parseAsString,
   parseAsArrayOf,
   parseAsJson,
+  parseAsBoolean,
 } from "nuqs";
 import { toast } from "sonner";
 import { UsersDataTable } from "./components/data-table";
@@ -21,6 +22,7 @@ const buildUserQueryParams = (params: {
   search?: string;
   roles?: string[];
   permissions?: string[];
+  onlyLockedUsers?: boolean;
   sorting?: Array<{ id: string; desc: boolean }>;
 }) => {
   const ROLE_NAME_TO_ID: Record<string, number> = { Admin: 2, User: 3 };
@@ -62,6 +64,7 @@ const buildUserQueryParams = (params: {
       params.roles && params.roles.length > 0
         ? ROLE_NAME_TO_ID[params.roles[0]]
         : undefined,
+    OnlyLockedUsers: params.onlyLockedUsers || undefined,
   };
 
   if (permissions && permissions.length > 0) {
@@ -83,6 +86,7 @@ export default function UsersPage() {
     search: parseAsString.withDefault(""),
     roles: parseAsArrayOf(parseAsString).withDefault([]),
     permissions: parseAsArrayOf(parseAsString, ",").withDefault([]),
+    onlyLockedUsers: parseAsBoolean.withDefault(false),
     sorting: parseAsJson((value: any): Array<{ id: string; desc: boolean }> => {
       if (Array.isArray(value)) {
         return value.filter(
@@ -112,6 +116,43 @@ export default function UsersPage() {
       toast.success("User deleted successfully");
     },
     onError: () => toast.error("Failed to delete user"),
+  });
+
+  const exportToExcel = useMutation({
+    mutationFn: async () => {
+      const exportParams = {
+        Filter: urlParams.search || undefined,
+        Permissions:
+          urlParams.permissions.length > 0 ? urlParams.permissions : undefined,
+        Role:
+          urlParams.roles.length > 0
+            ? { Admin: 2, User: 3 }[urlParams.roles[0]]
+            : undefined,
+        OnlyLockedUsers: urlParams.onlyLockedUsers || undefined,
+        Sorting:
+          urlParams.sorting.length > 0
+            ? `${urlParams.sorting[0].id} ${
+                urlParams.sorting[0].desc ? "DESC" : "ASC"
+              }`
+            : undefined,
+        SelectedColumns: ["Name", "Surname", "UserName"],
+      };
+
+      const response = await usersApi.getUsersToExcel(exportParams).fetch();
+      console.log("Export response:", response);
+      return response.result;
+    },
+    onSuccess: async (fileDto) => {
+      //TODO: Download the file
+      console.log(fileDto.fileName);
+    },
+    onError: (error: any) => {
+      const message =
+        error?.response?.data?.error?.message ||
+        error?.message ||
+        "Failed to export users";
+      toast.error(message);
+    },
   });
 
   const users = data?.items ?? [];
@@ -157,12 +198,31 @@ export default function UsersPage() {
     }
   };
 
+  const handleImportExcel = () => {
+    console.log("Import Excel clicked");
+    setModalView({
+      name: "IMPORT_EXCEL",
+      args: {},
+      props: { cancelable: true },
+    });
+    openModal();
+  };
+
+  const handleExportExcel = () => {
+    console.log("Export Excel clicked");
+    exportToExcel.mutate();
+  };
+
   const handleSearchChange = (query: string) => {
     setUrlParams({ search: query, page: 1 });
   };
 
   const handleRoleFilterChange = (roles: string[]) => {
     setUrlParams({ roles, page: 1 });
+  };
+
+  const handleOnlyLockedUsersChange = (onlyLockedUsers: boolean) => {
+    setUrlParams({ onlyLockedUsers, page: 1 });
   };
 
   const handlePageChange = (page: number) => {
@@ -189,15 +249,20 @@ export default function UsersPage() {
           isDeleting={deleteUser.isPending}
           searchValue={urlParams.search}
           roleFilter={urlParams.roles}
+          onlyLockedUsers={urlParams.onlyLockedUsers}
           currentPage={urlParams.page}
           pageSize={urlParams.limit}
           sorting={urlParams.sorting}
           onUserAction={handleUserAction}
           onSearchChange={handleSearchChange}
           onRoleFilterChange={handleRoleFilterChange}
+          onOnlyLockedUsersChange={handleOnlyLockedUsersChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
           onSortingChange={handleSortingChange}
+          onImportExcel={handleImportExcel}
+          onExportExcel={handleExportExcel}
+          isExporting={exportToExcel.isPending}
         />
       </div>
     </div>

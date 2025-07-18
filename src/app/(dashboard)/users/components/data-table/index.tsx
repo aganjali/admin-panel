@@ -26,8 +26,6 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -43,7 +41,7 @@ import { DraggableRow } from "./draggable-row";
 import { DataTableHeader } from "./header";
 import { DataTableToolbar } from "./toolbar";
 import { DataTablePagination } from "./pagination";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 
 interface UsersDataTableProps {
   data: UserListDto[];
@@ -52,15 +50,20 @@ interface UsersDataTableProps {
   isDeleting: boolean;
   searchValue: string;
   roleFilter: string[];
+  onlyLockedUsers: boolean;
   currentPage: number;
   pageSize: number;
   sorting: Array<{ id: string; desc: boolean }>;
   onUserAction: (userId: number, action: string) => void;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
+  onOnlyLockedUsersChange: (value: boolean) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onSortingChange: (sorting: Array<{ id: string; desc: boolean }>) => void;
+  onImportExcel?: () => void;
+  onExportExcel?: () => void;
+  isExporting?: boolean;
 }
 
 const roleOptions = ["Admin", "User"];
@@ -72,15 +75,20 @@ export function UsersDataTable({
   isDeleting,
   searchValue,
   roleFilter,
+  onlyLockedUsers,
   currentPage,
   pageSize,
   sorting: serverSorting,
   onUserAction,
   onSearchChange,
   onRoleFilterChange,
+  onOnlyLockedUsersChange,
   onPageChange,
   onPageSizeChange,
   onSortingChange,
+  onImportExcel,
+  onExportExcel,
+  isExporting,
 }: UsersDataTableProps) {
   const [data, setData] = useState(() => initialData);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -195,77 +203,100 @@ export function UsersDataTable({
     <div className="w-full flex-col justify-start gap-6 space-y-4">
       <DataTableHeader />
 
-      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
-        <DataTableToolbar
-          searchValue={localSearchValue}
-          isSearching={isSearching}
-          roleFilter={roleFilter}
-          roleOptions={roleOptions}
-          table={table}
-          onSearchChange={setLocalSearchValue}
-          onRoleFilterChange={onRoleFilterChange}
-        />
+      <div className="relative flex flex-col gap-4 px-4 lg:px-6">
+        <div className="w-full min-w-0">
+          <DataTableToolbar
+            searchValue={localSearchValue}
+            isSearching={isSearching}
+            roleFilter={roleFilter}
+            roleOptions={roleOptions}
+            onlyLockedUsers={onlyLockedUsers}
+            table={table}
+            onSearchChange={setLocalSearchValue}
+            onRoleFilterChange={onRoleFilterChange}
+            onOnlyLockedUsersChange={onOnlyLockedUsersChange}
+            onImportExcel={onImportExcel}
+            onExportExcel={onExportExcel}
+            isExporting={isExporting}
+          />
+        </div>
 
-        <div className="overflow-hidden rounded-lg border">
-          <DndContext
-            collisionDetection={closestCenter}
-            modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
-            sensors={sensors}
-            id={sortableId}
-          >
-            <Table className="w-[75vw]">
-              <TableHeader className="bg-muted sticky top-0 z-10">
-                {table.getHeaderGroups().map((headerGroup) => (
-                  <TableRow key={headerGroup.id}>
-                    {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id} colSpan={header.colSpan}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
-                    ))}
-                  </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {isLoading ? (
-                  Array.from({ length: pageSize }).map((_, i) => (
-                    <TableRow key={`skeleton-${i}`}>
-                      {columns.map((_, j) => (
-                        <TableCell key={`skeleton-cell-${i}-${j}`}>
-                          <Skeleton
-                            className={cn("h-6", j === 0 ? "w-6" : "w-full")}
-                          />
-                        </TableCell>
+        <div className="w-full">
+          <div className="overflow-hidden rounded-lg border">
+            <DndContext
+              collisionDetection={closestCenter}
+              modifiers={[restrictToVerticalAxis]}
+              onDragEnd={handleDragEnd}
+              sensors={sensors}
+              id={sortableId}
+            >
+              <Table className="w-full table-fixed">
+                <colgroup>
+                  <col className="w-12" />
+                  <col className="w-32" />
+                  <col className="w-24" />
+                  <col className="w-24" />
+                  <col className="w-28" />
+                  <col className="w-48" />
+                  <col className="w-24" />
+                  <col className="w-20" />
+                  <col className="w-28" />
+                  <col className="w-16" />
+                </colgroup>
+                <TableHeader className="bg-muted sticky top-0 z-10">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <TableRow key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <TableHead
+                          key={header.id}
+                          colSpan={header.colSpan}
+                          className="text-left px-3 py-2 overflow-hidden"
+                        >
+                          <div className="truncate">
+                            {header.isPlaceholder
+                              ? null
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext()
+                                )}
+                          </div>
+                        </TableHead>
                       ))}
                     </TableRow>
-                  ))
-                ) : table.getRowModel().rows?.length ? (
-                  <SortableContext
-                    items={dataIds}
-                    strategy={verticalListSortingStrategy}
-                  >
-                    {table.getRowModel().rows.map((row) => (
-                      <DraggableRow key={row.id} row={row} />
-                    ))}
-                  </SortableContext>
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={columns.length}
-                      className="h-24 text-center"
+                  ))}
+                </TableHeader>
+                <TableBody>
+                  {isLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={columns.length} className="h-[50vh]">
+                        <div className="flex justify-center items-center">
+                          <Loader2 className="size-8 text-primary animate-spin" />
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : table.getRowModel().rows?.length ? (
+                    <SortableContext
+                      items={dataIds}
+                      strategy={verticalListSortingStrategy}
                     >
-                      No users found.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </DndContext>
+                      {table.getRowModel().rows.map((row) => (
+                        <DraggableRow key={row.id} row={row} />
+                      ))}
+                    </SortableContext>
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={columns.length}
+                        className="h-24 text-center"
+                      >
+                        No users found.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </DndContext>
+          </div>
         </div>
 
         <DataTablePagination
