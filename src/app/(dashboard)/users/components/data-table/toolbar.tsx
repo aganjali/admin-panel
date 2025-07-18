@@ -93,9 +93,9 @@ export function DataTableToolbar({
   };
 
   return (
-    <div className="flex items-center justify-between gap-4 mt-4">
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-4">
       {/* Left side - Search and Filters */}
-      <div className="flex items-center gap-4 flex-1">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
         <div className="relative w-full max-w-sm">
           {isSearching ? (
             <Loader2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
@@ -110,66 +110,72 @@ export function DataTableToolbar({
           />
         </div>
 
-        <Select
-          value={roleFilter.length > 0 ? roleFilter[0] : "all"}
-          onValueChange={(value) => {
-            const roles = value === "all" ? [] : [value];
-            onRoleFilterChange(roles);
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Filter by role">
-              {roleFilter.length > 0 ? roleFilter[0] : "All roles"}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All roles</SelectItem>
-            {roleOptions.map((role) => (
-              <SelectItem key={role} value={role}>
-                {role}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Button
-          variant={hasPermissionFilter ? "secondary" : "outline"}
-          onClick={() => {
-            setModalView({
-              name: "FILTER_PERMISSIONS",
-              args: {},
-              props: { cancelable: true },
-            });
-            openModal();
-          }}
-          className={hasPermissionFilter ? "relative" : ""}
-        >
-          <Shield className="h-5 w-5" />
-          <span>Filter by Permissions</span>
-          {hasPermissionFilter && (
-            <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
-              {permissionCount}
-            </span>
-          )}
-        </Button>
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            id="onlyLockedUsers"
-            checked={onlyLockedUsers}
-            onCheckedChange={(checked) =>
-              onOnlyLockedUsersChange(checked as boolean)
-            }
-          />
-          <label
-            htmlFor="onlyLockedUsers"
-            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+          <Select
+            value={roleFilter.length > 0 ? roleFilter[0] : "all"}
+            onValueChange={(value) => {
+              const roles = value === "all" ? [] : [value];
+              onRoleFilterChange(roles);
+            }}
           >
-            Only Locked Users
-          </label>
+            <SelectTrigger className="min-w-40">
+              <SelectValue placeholder="Filter by role">
+                {roleFilter.length > 0 ? roleFilter[0] : "All roles"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All roles</SelectItem>
+              {roleOptions.map((role) => (
+                <SelectItem key={role} value={role}>
+                  {role}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant={hasPermissionFilter ? "secondary" : "outline"}
+            onClick={() => {
+              setModalView({
+                name: "FILTER_PERMISSIONS",
+                args: {},
+                props: { cancelable: true },
+              });
+              openModal();
+            }}
+            className={
+              hasPermissionFilter
+                ? "relative whitespace-nowrap"
+                : "whitespace-nowrap"
+            }
+          >
+            <Shield className="h-5 w-5" />
+            <span>Filter by Permissions</span>
+            {hasPermissionFilter && (
+              <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
+                {permissionCount}
+              </span>
+            )}
+          </Button>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="onlyLockedUsers"
+              checked={onlyLockedUsers}
+              onCheckedChange={(checked) =>
+                onOnlyLockedUsersChange(checked as boolean)
+              }
+            />
+            <label
+              htmlFor="onlyLockedUsers"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 whitespace-nowrap"
+            >
+              Only Locked Users
+            </label>
+          </div>
         </div>
       </div>
 
       {/* Right side - Actions */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

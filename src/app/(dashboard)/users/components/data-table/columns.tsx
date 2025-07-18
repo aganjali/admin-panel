@@ -120,8 +120,9 @@ export const getColumns = (
     id: "drag",
     header: () => null,
     cell: () => null,
-    size: 20,
     enableSorting: false,
+    enableResizing: false,
+    enableHiding: false,
   },
   {
     id: "userName",
@@ -132,12 +133,15 @@ export const getColumns = (
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3 min-w-0">
+        <div className="flex items-center gap-3 w-max">
           <Avatar className="w-8 h-8 border-2 flex-shrink-0">
             {/* <AvatarImage src={user.avatar} alt={user.fullName} /> */}
             <AvatarFallback>{user.initials}</AvatarFallback>
           </Avatar>
-          <span className="font-medium truncate" title={user.name ?? ""}>
+          <span
+            className="font-medium whitespace-nowrap"
+            title={user.name ?? ""}
+          >
             {user.name}
           </span>
         </div>
@@ -153,7 +157,7 @@ export const getColumns = (
       <SortableHeader column={column}>First Name</SortableHeader>
     ),
     cell: ({ row }) => (
-      <span className="truncate block" title={row.original.name ?? ""}>
+      <span className="whitespace-nowrap" title={row.original.name ?? ""}>
         {row.original.name}
       </span>
     ),
@@ -165,7 +169,7 @@ export const getColumns = (
       <SortableHeader column={column}>Surname</SortableHeader>
     ),
     cell: ({ row }) => (
-      <span className="truncate block" title={row.original.surname ?? ""}>
+      <span className="whitespace-nowrap" title={row.original.surname ?? ""}>
         {row.original.surname}
       </span>
     ),
@@ -179,15 +183,21 @@ export const getColumns = (
     cell: ({ row }) => {
       const roles = row.original.roles ?? [];
       return (
-        <div className="flex flex-wrap gap-1">
+        <div className="flex flex-wrap gap-1 w-max">
           {roles.length > 0 ? (
             roles.map((role) => (
-              <Badge key={role.roleName} variant="outline" className="text-xs">
+              <Badge
+                key={role.roleName}
+                variant="outline"
+                className="text-xs whitespace-nowrap"
+              >
                 {role.roleName}
               </Badge>
             ))
           ) : (
-            <span className="text-muted-foreground text-sm">No roles</span>
+            <span className="text-muted-foreground text-sm whitespace-nowrap">
+              No roles
+            </span>
           )}
         </div>
       );
@@ -212,7 +222,10 @@ export const getColumns = (
       <SortableHeader column={column}>Email Address</SortableHeader>
     ),
     cell: ({ row }) => (
-      <span className="truncate block" title={row.original.emailAddress ?? ""}>
+      <span
+        className="whitespace-nowrap"
+        title={row.original.emailAddress ?? ""}
+      >
         {row.original.emailAddress}
       </span>
     ),
@@ -226,8 +239,11 @@ export const getColumns = (
     cell: ({ row }) => {
       const isConfirmed = row.original.isEmailConfirmed;
       return (
-        <div className="flex items-center gap-2">
-          <Badge variant="outline" className="text-muted-foreground px-1.5">
+        <div className="flex items-center gap-2 w-max">
+          <Badge
+            variant="outline"
+            className="text-muted-foreground px-1.5 whitespace-nowrap"
+          >
             {isConfirmed ? (
               <>
                 <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
@@ -253,9 +269,12 @@ export const getColumns = (
     cell: ({ row }) => {
       const isActive = row.original.isActive;
       return (
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-max">
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="text-muted-foreground px-1.5">
+            <Badge
+              variant="outline"
+              className="text-muted-foreground px-1.5 whitespace-nowrap"
+            >
               {isActive ? (
                 <>
                   <IconCircleCheckFilled className="fill-green-500 dark:fill-green-400" />
@@ -283,7 +302,7 @@ export const getColumns = (
     cell: ({ row }) => {
       const creationTime = row.original.creationTime;
       return (
-        <span className="text-sm">
+        <span className="text-sm whitespace-nowrap">
           {creationTime ? format(parseISO(creationTime), "MM/dd/yyyy") : ""}
         </span>
       );
@@ -297,11 +316,13 @@ export const getColumns = (
     enableSorting: false,
     cell: ({ row }) => {
       return (
-        <ActionsList
-          user={row.original}
-          isDeleting={isDeleting}
-          onUserAction={onUserAction}
-        />
+        <div className="w-max">
+          <ActionsList
+            user={row.original}
+            isDeleting={isDeleting}
+            onUserAction={onUserAction}
+          />
+        </div>
       );
     },
     enableHiding: false,

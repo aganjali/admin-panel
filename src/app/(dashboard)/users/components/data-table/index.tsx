@@ -35,6 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserListWithAvatarDto } from "@/types";
+import { cn } from "@/lib/utils";
 
 import { getColumns } from "./columns";
 import { DraggableRow } from "./draggable-row";
@@ -203,8 +204,8 @@ export function UsersDataTable({
     <div className="w-full flex-col justify-start gap-6 space-y-4">
       <DataTableHeader />
 
-      <div className="relative flex flex-col gap-4 px-4 lg:px-6">
-        <div className="w-full min-w-0">
+      <div className="relative flex flex-col gap-4 w-full">
+        <div className="w-full">
           <DataTableToolbar
             searchValue={localSearchValue}
             isSearching={isSearching}
@@ -222,7 +223,7 @@ export function UsersDataTable({
         </div>
 
         <div className="w-full">
-          <div className="overflow-hidden rounded-lg border">
+          <div className="overflow-auto rounded-lg border">
             <DndContext
               collisionDetection={closestCenter}
               modifiers={[restrictToVerticalAxis]}
@@ -230,38 +231,34 @@ export function UsersDataTable({
               sensors={sensors}
               id={sortableId}
             >
-              <Table className="w-full table-fixed">
-                <colgroup>
-                  <col className="w-12" />
-                  <col className="w-32" />
-                  <col className="w-24" />
-                  <col className="w-24" />
-                  <col className="w-28" />
-                  <col className="w-48" />
-                  <col className="w-24" />
-                  <col className="w-20" />
-                  <col className="w-28" />
-                  <col className="w-16" />
-                </colgroup>
+              <Table className="w-auto min-w-full table-auto">
                 <TableHeader className="bg-muted sticky top-0 z-10">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          colSpan={header.colSpan}
-                          className="text-left px-3 py-2 overflow-hidden"
-                        >
-                          <div className="truncate">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </div>
-                        </TableHead>
-                      ))}
+                      {headerGroup.headers.map((header, headerIndex) => {
+                        const isDragColumn = headerIndex === 0;
+
+                        return (
+                          <TableHead
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            className={cn(
+                              isDragColumn
+                                ? "text-center px-2 py-2 w-auto"
+                                : "text-left px-3 py-2 whitespace-nowrap w-auto"
+                            )}
+                          >
+                            <div className="flex items-center w-max">
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </div>
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableHeader>
