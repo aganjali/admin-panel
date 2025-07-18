@@ -2,6 +2,7 @@ import {
   ApiResponse,
   AuthenticateModel,
   CurrentUserProfileEditDto,
+  GetCurrentLoginInformationsOutput,
   ResetPasswordInput,
   ResetPasswordOutput,
   SendPasswordResetCodeInput,
@@ -36,5 +37,11 @@ export const authApi = {
       url: "/api/services/app/Account/ResetPassword",
       data,
       isSecure: false,
+    }),
+
+  currentLoginInfo: () =>
+    http.get<ApiResponse<GetCurrentLoginInformationsOutput>>({
+      url: "/api/services/app/Session/GetCurrentLoginInformations",
+      isSecure: true,
     }),
 };

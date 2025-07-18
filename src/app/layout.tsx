@@ -6,6 +6,13 @@ import "@/styles/globals.css";
 import { detectLanguage } from "@/lib/locales/server";
 import { detectCookieSettings } from "@/lib/settings/server";
 import { http } from "@/lib/http";
+import { authApi } from "@/lib/api/auth";
+import {
+  ApiResponse,
+  GetCurrentLoginInformationsOutput,
+  GetUserPermissionsForEditOutput,
+} from "@/types";
+import { usersApi } from "@/lib/api/users";
 // import { ColorThemeProvider } from "@/components/color-theme-provider";
 
 const geistSans = Geist({
@@ -30,6 +37,18 @@ export default async function RootLayout({
 }>) {
   const lang = await detectLanguage();
   const settings = await detectCookieSettings();
+  let loginInfo: ApiResponse<GetCurrentLoginInformationsOutput> | null = null;
+  let permissions: ApiResponse<GetUserPermissionsForEditOutput> | null = null;
+  console.log("refetch");
+  try {
+    loginInfo = await authApi.currentLoginInfo().fetch();
+    if (loginInfo.result?.user?.id)
+      permissions = await usersApi
+        .getUserPermissionsForEdit({ Id: loginInfo.result?.user.id })
+        .fetch();
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  } catch (e) {}
+
   http.locale = lang;
 
   return (
@@ -37,7 +56,12 @@ export default async function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} theme-${settings.activeTheme} text-foreground group/body overscroll-none font-sans antialiased [--footer-height:calc(var(--spacing)*14)] [--header-height:calc(var(--spacing)*14)] xl:[--footer-height:calc(var(--spacing)*24)]`}
       >
-        <Providers lang={lang} settings={settings}>
+        <Providers
+          lang={lang}
+          settings={settings}
+          permissions={permissions}
+          loginInfo={loginInfo}
+        >
           {children}
         </Providers>
       </body>

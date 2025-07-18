@@ -38,15 +38,6 @@ export const useUser = ({
     : redirectTo
     ? "loading"
     : "logged-out";
-  console.log({
-    isAuthenticated,
-    isLoading,
-    user,
-    state,
-    redirectTo,
-    redirectIfFound,
-    next,
-  });
 
   useIsoMorphicEffect(() => {
     // if no redirect needed, just return (example: already on /dashboard)
