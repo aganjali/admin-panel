@@ -36,7 +36,7 @@ export const SortableHeader = ({
         <Button
           variant="ghost"
           className={cn(
-            "h-auto p-0 font-semibold hover:bg-transparent",
+            "h-auto p-0 font-semibold shrink-0 hover:bg-transparent",
             "flex items-center gap-2 text-left justify-start"
           )}
         >
@@ -58,14 +58,14 @@ export const SortableHeader = ({
           className="flex items-center gap-2"
         >
           <IconSortAscending className="h-4 w-4" />
-          Sort Ascending
+          Ascending
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => column.toggleSorting(true)}
           className="flex items-center gap-2"
         >
           <IconSortDescending className="h-4 w-4" />
-          Sort Descending
+          Descending
         </DropdownMenuItem>
         {sorted && (
           <>

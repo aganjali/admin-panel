@@ -1,5 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { UserListDto } from "@/types";
+import { UserListWithAvatarDto } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,7 +16,6 @@ import {
   IconTrash,
   IconShield,
   IconCircleCheckFilled,
-  IconLoader,
 } from "@tabler/icons-react";
 import { Loader2 } from "lucide-react";
 import { format, parseISO } from "date-fns";
@@ -27,12 +26,12 @@ type OnUserAction = (userId: number, action: string) => void;
 export const getColumns = (
   onUserAction: OnUserAction,
   isDeleting: boolean
-): ColumnDef<UserListDto>[] => [
+): ColumnDef<UserListWithAvatarDto>[] => [
   {
     id: "drag",
     header: () => null,
     cell: () => null,
-    size: 40,
+    size: 20,
     enableSorting: false,
   },
   {
@@ -46,10 +45,8 @@ export const getColumns = (
       return (
         <div className="flex items-center gap-3 min-w-0">
           <Avatar className="w-8 h-8 border-2 flex-shrink-0">
-            <AvatarFallback>
-              {user.name?.charAt(0).toUpperCase()}
-              {user.surname?.charAt(0).toUpperCase()}
-            </AvatarFallback>
+            {/* <AvatarImage src={user.avatar} alt={user.fullName} /> */}
+            <AvatarFallback>{user.initials}</AvatarFallback>
           </Avatar>
           <span className="font-medium truncate" title={user.name ?? ""}>
             {user.name}
@@ -149,7 +146,7 @@ export const getColumns = (
               </>
             ) : (
               <>
-                <IconLoader />
+                {/* <IconLoader /> */}
                 No
               </>
             )}
@@ -177,7 +174,7 @@ export const getColumns = (
                 </>
               ) : (
                 <>
-                  <IconLoader />
+                  {/* <IconLoader /> */}
                   No
                 </>
               )}

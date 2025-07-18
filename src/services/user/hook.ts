@@ -2,10 +2,13 @@ import { useContext } from "react";
 import { useIsoMorphicEffect } from "@/hooks/use-isomorphic-effect";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 
-import { UserContext } from "./context";
-import { useLatestCallback } from "@/hooks/use-latest-callback";
+import { CheckPermsFnArgs, UserContext } from "./context";
 
 export type UseReturnType = "current" | "next" | "none";
+type CommonArgs = {
+  redirectToNotAccess?: string | boolean;
+};
+
 interface Props {
   redirectTo?: string;
   redirectIfFound?: string | boolean;
@@ -14,26 +17,6 @@ interface Props {
 }
 
 export type UserState = "loading" | "logged-in" | "logged-out";
-type CommonArgs = {
-  redirectToNotAccess?: string | boolean;
-};
-type DefaultArgs = {
-  list: (string | string[])[];
-  type?: "default";
-};
-type SimpleArgs = { list: string[]; type: "and" | "or" };
-type SingleArgs = { list: [string]; type: "single" };
-
-/**
- * Check if user granted the list of permissions.
- *
- * @param perms - list of permissions to check
- * @param type - "default" | "and" | "or" (default: "default")
- * @returns true if granted, otherwise false
- */
-export type CheckPermsFnArgs = DefaultArgs | SimpleArgs | SingleArgs;
-
-export type CheckPermsFn = (args: CheckPermsFnArgs) => boolean;
 
 export const useUser = ({
   redirectTo = "",
@@ -54,30 +37,6 @@ export const useUser = ({
   }
   const { isAuthenticated, isLoading, user } = context;
 
-  const checkPerms: CheckPermsFn = useLatestCallback(
-    ({ list, type = "default" }) => {
-      if (type === "single")
-        return context.grantedPermissions[(list as [string])[0]] ?? false;
-      if (type === "and") {
-        return (list as string[]).every(
-          (f) => context.grantedPermissions[f] ?? false
-        );
-      }
-
-      if (type === "or") {
-        return (list as string[]).some(
-          (f) => context.grantedPermissions[f] ?? false
-        );
-      }
-
-      return !(list as string[] | (string | string[])[]).every((e) =>
-        Array.isArray(e)
-          ? e.some((f) => context.grantedPermissions[f] ?? false)
-          : context.grantedPermissions[e] ?? false
-      );
-    }
-  );
-
   const partialState: UserState = isLoading
     ? "loading"
     : isAuthenticated
@@ -88,7 +47,7 @@ export const useUser = ({
     ? "loading"
     : "logged-out";
   const isLoggedIn = partialState === "logged-in";
-  const hasAccess = isLoggedIn && perms ? checkPerms(perms) : false;
+  const hasAccess = isLoggedIn && perms ? context.checkPerms(perms) : false;
 
   const state: UserState = isLoggedIn
     ? !hasAccess && perms?.redirectToNotAccess
@@ -138,5 +97,5 @@ export const useUser = ({
     redirectToNotAccess,
   ]);
 
-  return { ...context, state, checkPerms, hasAccess };
+  return { ...context, state, hasAccess };
 };

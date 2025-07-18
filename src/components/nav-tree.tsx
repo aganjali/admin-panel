@@ -16,8 +16,9 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { type TreeNode } from "./tree-data";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { UserContext } from "@/services/user/context";
 
 interface NavTreeProps {
   nodes: TreeNode[];
@@ -104,6 +105,7 @@ function CollapsibleSubMenu({
 function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
   const pathname = usePathname();
   const { state } = useSidebar();
+  const { checkPerms } = useContext(UserContext);
   const router = useRouter();
   const hasChildren = node.children && node.children.length > 0;
 
@@ -125,6 +127,8 @@ function TreeNodeItem({ node, level = 0 }: TreeNodeItemProps) {
   };
 
   const Icon = node.icon;
+  console.log({ node });
+  if (!checkPerms({ list: node.perms })) return null;
 
   if (level === 0) {
     return (

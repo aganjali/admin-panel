@@ -1,12 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Row, flexRender } from "@tanstack/react-table";
-import { UserListDto } from "@/types";
+import { UserListWithAvatarDto } from "@/types";
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { IconGripVertical } from "@tabler/icons-react";
 
-export function DraggableRow({ row }: { row: Row<UserListDto> }) {
+export function DraggableRow({ row }: { row: Row<UserListWithAvatarDto> }) {
   const {
     attributes,
     listeners,

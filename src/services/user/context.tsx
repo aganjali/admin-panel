@@ -10,6 +10,25 @@ import type {
 
 // context.tsx
 import { createContext } from "react";
+
+type DefaultArgs = {
+  list: (string | string[])[];
+  type?: "default";
+};
+type SimpleArgs = { list: string[]; type: "and" | "or" };
+type SingleArgs = { list: [string]; type: "single" };
+
+/**
+ * Check if user granted the list of permissions.
+ *
+ * @param perms - list of permissions to check
+ * @param type - "default" | "and" | "or" (default: "default")
+ * @returns true if granted, otherwise false
+ */
+export type CheckPermsFnArgs = DefaultArgs | SimpleArgs | SingleArgs;
+
+export type CheckPermsFn = (args: CheckPermsFnArgs) => boolean;
+
 export type UserDto = Omit<UserLoginInfoDto, "profilePictureId"> & {
   fullName: string;
   initials: string;
@@ -34,6 +53,7 @@ export interface UserState {
 export interface UserActions {
   login: (creds: AuthenticateModel) => Promise<void>;
   logout: () => Promise<void>;
+  checkPerms: CheckPermsFn;
   refreshUser: (
     options?: RefetchOptions
   ) => Promise<QueryObserverResult<CurrentLoginInformationDto, Error>>;
@@ -60,6 +80,9 @@ const defaultActions: UserActions = {
   //   throw new Error('UserProvider not found');
   // },
   login: async () => {
+    throw new Error("UserProvider not found");
+  },
+  checkPerms: () => {
     throw new Error("UserProvider not found");
   },
   logout: async () => {

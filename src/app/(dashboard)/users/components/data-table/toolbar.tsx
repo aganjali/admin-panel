@@ -28,7 +28,7 @@ import {
   Download,
 } from "lucide-react";
 import type { Table } from "@tanstack/react-table";
-import type { UserListDto } from "@/types";
+import type { UserListWithAvatarDto } from "@/types";
 import { useUI } from "@/services/managed-ui";
 import { useQueryState } from "nuqs";
 import { useRouter } from "next/navigation";
@@ -39,7 +39,7 @@ interface DataTableToolbarProps {
   roleFilter: string[];
   roleOptions: string[];
   onlyLockedUsers: boolean;
-  table: Table<UserListDto>;
+  table: Table<UserListWithAvatarDto>;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
   onOnlyLockedUsersChange: (value: boolean) => void;

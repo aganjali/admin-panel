@@ -34,7 +34,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { UserListDto } from "@/types";
+import { UserListWithAvatarDto } from "@/types";
 
 import { getColumns } from "./columns";
 import { DraggableRow } from "./draggable-row";
@@ -44,7 +44,7 @@ import { DataTablePagination } from "./pagination";
 import { Loader2 } from "lucide-react";
 
 interface UsersDataTableProps {
-  data: UserListDto[];
+  data: UserListWithAvatarDto[];
   totalCount: number;
   isLoading: boolean;
   isDeleting: boolean;

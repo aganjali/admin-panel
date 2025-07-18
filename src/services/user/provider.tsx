@@ -7,7 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { UserContext } from "./context";
 
-import type { UserContextType } from "./context";
+import type { CheckPermsFn, UserContextType } from "./context";
 import { authApi } from "@/lib/api/auth";
 import { http } from "@/lib/http";
 import { queryClient } from "@/lib/query";
@@ -82,6 +82,25 @@ export const UserProvider: React.FC<{
       throw error;
     }
   });
+
+  const checkPerms: CheckPermsFn = useLatestCallback(
+    ({ list, type = "default" }) => {
+      if (!perms) return false;
+      if (type === "single") return perms[(list as [string])[0]] ?? false;
+      if (type === "and") {
+        return (list as string[]).every((f) => perms[f] ?? false);
+      }
+
+      if (type === "or") {
+        return (list as string[]).some((f) => perms[f] ?? false);
+      }
+
+      return (list as string[] | (string | string[])[]).every((e) =>
+        Array.isArray(e) ? e.some((f) => perms[f] ?? false) : perms[e] ?? false
+      );
+    }
+  );
+
   const logout = useLatestCallback(async () => {
     try {
       await authApi.logOut().fetch();
@@ -116,13 +135,14 @@ export const UserProvider: React.FC<{
       login,
       logout,
       refreshUser,
+      checkPerms,
     }),
     [
       user,
       isPending,
       isAuthenticated,
       perms,
-      // grantedPermissions,
+      checkPerms,
       isActive,
       login,
       logout,
