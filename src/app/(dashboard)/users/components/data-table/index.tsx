@@ -50,12 +50,14 @@ interface UsersDataTableProps {
   isDeleting: boolean;
   searchValue: string;
   roleFilter: string[];
+  onlyLockedUsers: boolean;
   currentPage: number;
   pageSize: number;
   sorting: Array<{ id: string; desc: boolean }>;
   onUserAction: (userId: number, action: string) => void;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
+  onOnlyLockedUsersChange: (value: boolean) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onSortingChange: (sorting: Array<{ id: string; desc: boolean }>) => void;
@@ -73,12 +75,14 @@ export function UsersDataTable({
   isDeleting,
   searchValue,
   roleFilter,
+  onlyLockedUsers,
   currentPage,
   pageSize,
   sorting: serverSorting,
   onUserAction,
   onSearchChange,
   onRoleFilterChange,
+  onOnlyLockedUsersChange,
   onPageChange,
   onPageSizeChange,
   onSortingChange,
@@ -206,9 +210,11 @@ export function UsersDataTable({
             isSearching={isSearching}
             roleFilter={roleFilter}
             roleOptions={roleOptions}
+            onlyLockedUsers={onlyLockedUsers}
             table={table}
             onSearchChange={setLocalSearchValue}
             onRoleFilterChange={onRoleFilterChange}
+            onOnlyLockedUsersChange={onOnlyLockedUsersChange}
             onImportExcel={onImportExcel}
             onExportExcel={onExportExcel}
             isExporting={isExporting}

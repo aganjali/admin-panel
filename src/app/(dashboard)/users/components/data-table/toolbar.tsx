@@ -2,6 +2,7 @@
 
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -37,9 +38,11 @@ interface DataTableToolbarProps {
   isSearching: boolean;
   roleFilter: string[];
   roleOptions: string[];
+  onlyLockedUsers: boolean;
   table: Table<UserListDto>;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
+  onOnlyLockedUsersChange: (value: boolean) => void;
   onImportExcel?: () => void;
   onExportExcel?: () => void;
   isExporting?: boolean;
@@ -50,9 +53,11 @@ export function DataTableToolbar({
   isSearching,
   roleFilter,
   roleOptions,
+  onlyLockedUsers,
   table,
   onSearchChange,
   onRoleFilterChange,
+  onOnlyLockedUsersChange,
   onImportExcel,
   onExportExcel,
   isExporting = false,
@@ -70,12 +75,16 @@ export function DataTableToolbar({
   const permissionCount = hasPermissionFilter ? permissionFilter.length : 0;
 
   const hasActiveFilters =
-    searchValue || roleFilter.length > 0 || hasPermissionFilter;
+    searchValue ||
+    roleFilter.length > 0 ||
+    hasPermissionFilter ||
+    onlyLockedUsers;
 
   const handleReset = () => {
     // Clear all filters and query params
     onSearchChange("");
     onRoleFilterChange([]);
+    onOnlyLockedUsersChange(false);
     setPermissionFilter(null); // Clear permissions query param
 
     // Optional: Navigate to clean URL without query params
@@ -122,7 +131,6 @@ export function DataTableToolbar({
             ))}
           </SelectContent>
         </Select>
-
         <Button
           variant={hasPermissionFilter ? "secondary" : "outline"}
           onClick={() => {
@@ -143,6 +151,21 @@ export function DataTableToolbar({
             </span>
           )}
         </Button>
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="onlyLockedUsers"
+            checked={onlyLockedUsers}
+            onCheckedChange={(checked) =>
+              onOnlyLockedUsersChange(checked as boolean)
+            }
+          />
+          <label
+            htmlFor="onlyLockedUsers"
+            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          >
+            Only Locked Users
+          </label>
+        </div>
       </div>
 
       {/* Right side - Actions */}
