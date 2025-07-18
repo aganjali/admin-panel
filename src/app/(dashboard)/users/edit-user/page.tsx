@@ -27,6 +27,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api/users";
 import type { CreateOrUpdateUserInput } from "@/types";
 import { toast } from "sonner";
+import Loading from "@/components/loading";
 
 export default function EditUser() {
   const router = useRouter();
@@ -124,7 +125,8 @@ export default function EditUser() {
     router.push("/users");
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  if (isLoading)
+    return <Loading title="Loading User" desc="Fetching user details..." />;
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
@@ -348,7 +350,9 @@ export default function EditUser() {
               <Button type="button" variant="outline">
                 Cancel
               </Button>
-              <Button type="submit">Edit User</Button>
+              <Button type="submit" disabled={updateUser.isPending}>
+                {updateUser.isPending ? "Updating..." : "Edit User"}
+              </Button>
             </div>
           </form>
         </CardContent>

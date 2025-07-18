@@ -9,6 +9,7 @@ import {
   parseAsInteger,
   parseAsString,
   parseAsArrayOf,
+  parseAsJson,
 } from "nuqs";
 import { toast } from "sonner";
 import { UsersDataTable } from "./components/data-table";
@@ -19,18 +20,57 @@ const buildUserQueryParams = (params: {
   limit: number;
   search?: string;
   roles?: string[];
+  permissions?: string[];
+  sorting?: Array<{ id: string; desc: boolean }>;
 }) => {
   const ROLE_NAME_TO_ID: Record<string, number> = { Admin: 2, User: 3 };
 
-  return {
+  // Map column IDs to API sort fields
+  const SORT_FIELD_MAP: Record<string, string> = {
+    userName: "Name",
+    firstName: "Name",
+    surname: "Surname",
+    emailAddress: "EmailAddress",
+    isEmailConfirmed: "IsEmailConfirmed",
+    isActive: "IsActive",
+    creationTime: "CreationTime",
+    roles: "Name", // Sort by name when sorting roles
+  };
+
+  let sorting = "";
+  if (params.sorting && params.sorting.length > 0) {
+    const sortItem = params.sorting[0];
+    const sortField = SORT_FIELD_MAP[sortItem.id];
+    if (sortField) {
+      sorting = `${sortField} ${sortItem.desc ? "DESC" : "ASC"}`;
+    }
+  }
+
+  const permissions =
+    params.permissions && params.permissions.length > 0
+      ? params.permissions.filter(
+          (p) => typeof p === "string" && p.trim() !== ""
+        )
+      : undefined;
+
+  const queryParams: any = {
     SkipCount: (params.page - 1) * params.limit,
     MaxResultCount: params.limit,
     Filter: params.search,
+    Sorting: sorting || undefined,
     Role:
       params.roles && params.roles.length > 0
         ? ROLE_NAME_TO_ID[params.roles[0]]
         : undefined,
   };
+
+  if (permissions && permissions.length > 0) {
+    permissions.forEach((permission, index) => {
+      queryParams[`Permissions[${index}]`] = permission;
+    });
+  }
+
+  return queryParams;
 };
 
 export default function UsersPage() {
@@ -39,9 +79,21 @@ export default function UsersPage() {
 
   const [urlParams, setUrlParams] = useQueryStates({
     page: parseAsInteger.withDefault(1),
-    limit: parseAsInteger.withDefault(10),
+    limit: parseAsInteger.withDefault(15),
     search: parseAsString.withDefault(""),
     roles: parseAsArrayOf(parseAsString).withDefault([]),
+    permissions: parseAsArrayOf(parseAsString, ",").withDefault([]),
+    sorting: parseAsJson((value: any): Array<{ id: string; desc: boolean }> => {
+      if (Array.isArray(value)) {
+        return value.filter(
+          (item) =>
+            typeof item === "object" &&
+            typeof item.id === "string" &&
+            typeof item.desc === "boolean"
+        );
+      }
+      return [];
+    }).withDefault([]),
   });
 
   const queryClient = useQueryClient();
@@ -121,8 +173,14 @@ export default function UsersPage() {
     setUrlParams({ limit, page: 1 });
   };
 
+  const handleSortingChange = (
+    sorting: Array<{ id: string; desc: boolean }>
+  ) => {
+    setUrlParams({ sorting, page: 1 });
+  };
+
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <div className="mx-auto py-6 px-3">
         <UsersDataTable
           data={users}
@@ -133,11 +191,13 @@ export default function UsersPage() {
           roleFilter={urlParams.roles}
           currentPage={urlParams.page}
           pageSize={urlParams.limit}
+          sorting={urlParams.sorting}
           onUserAction={handleUserAction}
           onSearchChange={handleSearchChange}
           onRoleFilterChange={handleRoleFilterChange}
           onPageChange={handlePageChange}
           onPageSizeChange={handlePageSizeChange}
+          onSortingChange={handleSortingChange}
         />
       </div>
     </div>

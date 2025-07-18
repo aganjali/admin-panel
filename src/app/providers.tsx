@@ -38,15 +38,17 @@ export function Providers({
           enableSystem
           disableTransitionOnChange
         >
-          <SettingsProvider initialCookieSettings={settings}>
-            <UserProvider permissions={permissions} loginInfo={loginInfo}>
-              <ManagedUIProvider>
-                <NuqsAdapter>{children}</NuqsAdapter>
-                <Toaster />
-                <ModalUI />
-              </ManagedUIProvider>
-            </UserProvider>
-          </SettingsProvider>
+          <NuqsAdapter>
+            <SettingsProvider initialCookieSettings={settings}>
+              <UserProvider permissions={permissions} loginInfo={loginInfo}>
+                <ManagedUIProvider>
+                  <NuqsAdapter>{children}</NuqsAdapter>
+                  <Toaster />
+                  <ModalUI />
+                </ManagedUIProvider>
+              </UserProvider>
+            </SettingsProvider>
+          </NuqsAdapter> 
         </NextThemesProvider>
       </QueryClientProvider>
     </I18nProvider>

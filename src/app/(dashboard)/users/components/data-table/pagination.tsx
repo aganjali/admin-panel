@@ -38,7 +38,7 @@ export function DataTablePagination({
         {Math.min(currentPage * pageSize, totalCount)} of {totalCount} users
       </div>
       <div className="flex w-full items-center gap-8 lg:w-fit">
-        <div className="hidden items-center gap-2 lg:flex">
+        <div className="flex items-center gap-2">
           <Label htmlFor="rows-per-page" className="text-sm font-medium">
             Rows per page
           </Label>
@@ -50,7 +50,7 @@ export function DataTablePagination({
               <SelectValue />
             </SelectTrigger>
             <SelectContent side="top">
-              {[10, 20, 30, 40, 50].map((size) => (
+              {[10, 15, 20, 30, 40, 50].map((size) => (
                 <SelectItem key={size} value={size.toString()}>
                   {size}
                 </SelectItem>

@@ -11,6 +11,7 @@ import {
   FileDto,
   GetUserForEditOutput,
   GetUserPermissionsForEditOutput,
+  ImportFromExcelJobArgs,
   PagedResultDtoOfUserListDto,
   UpdateUserPermissionsInput,
 } from "@/types";
@@ -88,5 +89,10 @@ export const usersApi = {
     >({
       url: "/api/services/app/User/GetUsersForDropDown",
       params,
+    }),
+  excelImport: (data: ImportFromExcelJobArgs) =>
+    http.post<ApiResponse<void>, ImportFromExcelJobArgs>({
+      url: "/api/services/app/User/ExcelImport",
+      data,
     }),
 };

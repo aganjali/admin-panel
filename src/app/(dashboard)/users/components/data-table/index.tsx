@@ -22,7 +22,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getSortedRowModel,
   SortingState,
   useReactTable,
   VisibilityState,
@@ -44,6 +43,7 @@ import { DraggableRow } from "./draggable-row";
 import { DataTableHeader } from "./header";
 import { DataTableToolbar } from "./toolbar";
 import { DataTablePagination } from "./pagination";
+import { cn } from "@/lib/utils";
 
 interface UsersDataTableProps {
   data: UserListDto[];
@@ -54,11 +54,13 @@ interface UsersDataTableProps {
   roleFilter: string[];
   currentPage: number;
   pageSize: number;
+  sorting: Array<{ id: string; desc: boolean }>;
   onUserAction: (userId: number, action: string) => void;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
+  onSortingChange: (sorting: Array<{ id: string; desc: boolean }>) => void;
 }
 
 const roleOptions = ["Admin", "User"];
@@ -72,15 +74,19 @@ export function UsersDataTable({
   roleFilter,
   currentPage,
   pageSize,
+  sorting: serverSorting,
   onUserAction,
   onSearchChange,
   onRoleFilterChange,
   onPageChange,
   onPageSizeChange,
+  onSortingChange,
 }: UsersDataTableProps) {
   const [data, setData] = useState(() => initialData);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>(() =>
+    serverSorting.map((sort) => ({ id: sort.id, desc: sort.desc }))
+  );
   const [localSearchValue, setLocalSearchValue] = useState(searchValue);
   const [isSearching, setIsSearching] = useState(false);
   const sortableId = useId();
@@ -100,6 +106,10 @@ export function UsersDataTable({
   useEffect(() => {
     setData(initialData);
   }, [initialData]);
+
+  useEffect(() => {
+    setSorting(serverSorting.map((sort) => ({ id: sort.id, desc: sort.desc })));
+  }, [serverSorting]);
 
   useEffect(() => {
     if (localSearchValue !== searchValue) {
@@ -143,12 +153,21 @@ export function UsersDataTable({
       ],
     },
     getRowId: (row, index) => (row.id ?? `temp-${index}`).toString(),
-    onSortingChange: setSorting,
+    onSortingChange: (updaterOrValue) => {
+      const newSorting =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(sorting)
+          : updaterOrValue;
+      setSorting(newSorting);
+      onSortingChange(
+        newSorting.map((sort) => ({ id: sort.id, desc: sort.desc }))
+      );
+    },
     onColumnVisibilityChange: setColumnVisibility,
     getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     manualPagination: true,
+    manualSorting: true,
     pageCount: Math.ceil(totalCount / pageSize),
   });
 
@@ -174,7 +193,7 @@ export function UsersDataTable({
 
   return (
     <div className="w-full flex-col justify-start gap-6 space-y-4">
-      <DataTableHeader table={table} />
+      <DataTableHeader />
 
       <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
         <DataTableToolbar
@@ -182,6 +201,7 @@ export function UsersDataTable({
           isSearching={isSearching}
           roleFilter={roleFilter}
           roleOptions={roleOptions}
+          table={table}
           onSearchChange={setLocalSearchValue}
           onRoleFilterChange={onRoleFilterChange}
         />
@@ -194,7 +214,7 @@ export function UsersDataTable({
             sensors={sensors}
             id={sortableId}
           >
-            <Table>
+            <Table className="w-[75vw]">
               <TableHeader className="bg-muted sticky top-0 z-10">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
@@ -217,7 +237,9 @@ export function UsersDataTable({
                     <TableRow key={`skeleton-${i}`}>
                       {columns.map((_, j) => (
                         <TableCell key={`skeleton-cell-${i}-${j}`}>
-                          <Skeleton className="h-6 w-full" />
+                          <Skeleton
+                            className={cn("h-6", j === 0 ? "w-6" : "w-full")}
+                          />
                         </TableCell>
                       ))}
                     </TableRow>

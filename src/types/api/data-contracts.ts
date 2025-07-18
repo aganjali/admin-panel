@@ -3557,6 +3557,14 @@ export interface ImpersonatedAuthenticateResultModel {
   expireInSeconds?: number;
 }
 
+export interface ImportFromExcelJobArgs {
+  /** @format int32 */
+  tenantId?: number | null;
+  /** @format uuid */
+  binaryObjectId?: string;
+  excelImporter?: UserIdentifier;
+}
+
 export interface IncomeStastistic {
   label?: string | null;
   /** @format date-time */
@@ -7064,6 +7072,13 @@ export interface UserExchangeTransactionOutput {
   type?: UserExchangeTransactionType;
   /** @format date-time */
   creationTime?: string;
+}
+
+export interface UserIdentifier {
+  /** @format int32 */
+  tenantId?: number | null;
+  /** @format int64 */
+  userId?: number;
 }
 
 export interface UserInformationListDto {

@@ -18,6 +18,8 @@ export interface UserPermissionsViewArgs {
   userName?: string;
 }
 
+export interface FilterPermissionsViewArgs {}
+
 export type MODAL_ARGS =
   | {
       name: "WALLET_PASSWORD";
@@ -30,6 +32,10 @@ export type MODAL_ARGS =
   | {
       name: "USER_PERMISSIONS";
       args: UserPermissionsViewArgs;
+    }
+  | {
+      name: "FILTER_PERMISSIONS";
+      args: FilterPermissionsViewArgs;
     };
 
 export type ModalProps = DialogContentProps & {

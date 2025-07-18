@@ -1,4 +1,5 @@
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -6,14 +7,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { IconSearch } from "@tabler/icons-react";
-import { Loader2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  IconSearch,
+  IconLayoutColumns,
+  IconChevronDown,
+} from "@tabler/icons-react";
+import { Loader2, Shield } from "lucide-react";
+import { Table } from "@tanstack/react-table";
+import { UserListDto } from "@/types";
+import { useUI } from "@/services/managed-ui";
+import { useQueryState } from "nuqs";
 
 interface DataTableToolbarProps {
   searchValue: string;
   isSearching: boolean;
   roleFilter: string[];
   roleOptions: string[];
+  table: Table<UserListDto>;
   onSearchChange: (value: string) => void;
   onRoleFilterChange: (roles: string[]) => void;
 }
@@ -23,11 +39,24 @@ export function DataTableToolbar({
   isSearching,
   roleFilter,
   roleOptions,
+  table,
   onSearchChange,
   onRoleFilterChange,
 }: DataTableToolbarProps) {
+  const { openModal, setModalView } = useUI();
+
+  // Get permissions query parameter
+  const [permissionFilter] = useQueryState("permissions", {
+    serialize: (value: string[]) => value.join(","),
+    parse: (value: string) => (value ? value.split(",") : []),
+    shallow: true,
+  });
+
+  const hasPermissionFilter = permissionFilter && permissionFilter.length > 0;
+  const permissionCount = hasPermissionFilter ? permissionFilter.length : 0;
+
   return (
-    <div className="flex items-center gap-4">
+    <div className="flex items-center gap-4 mt-4">
       <div className="relative flex-1 max-w-sm">
         {isSearching ? (
           <Loader2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
@@ -62,6 +91,57 @@ export function DataTableToolbar({
           ))}
         </SelectContent>
       </Select>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" className="w-max justify-between">
+            <div className="flex items-center gap-2">
+              <IconLayoutColumns className="h-4 w-4" />
+              <span>Customise Columns</span>
+            </div>
+            <IconChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          {table
+            .getAllColumns()
+            .filter(
+              (column) =>
+                typeof column.accessorFn !== "undefined" && column.getCanHide()
+            )
+            .map((column) => {
+              return (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  className="capitalize"
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {column.id}
+                </DropdownMenuCheckboxItem>
+              );
+            })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button
+        variant={hasPermissionFilter ? "secondary" : "outline"}
+        onClick={() => {
+          setModalView({
+            name: "FILTER_PERMISSIONS",
+            args: {},
+            props: { cancelable: true },
+          });
+          openModal();
+        }}
+        className={hasPermissionFilter ? "relative" : ""}
+      >
+        <Shield className="h-5 w-5" />
+        <span>Filter by Permissions</span>
+        {hasPermissionFilter && (
+          <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
+            {permissionCount}
+          </span>
+        )}
+      </Button>
     </div>
   );
 }

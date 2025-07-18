@@ -4,6 +4,7 @@ import { useUI } from "@/services/managed-ui";
 import { Dialog } from "@/components/ui/dialog";
 import { DeleteUserView } from "@/components/modals/delete-user-view";
 import { UserPermissionsView } from "@/components/modals/user-permissions-view";
+import { FilterPermissionsView } from "./modals/filter-permissions-view";
 
 interface Props {}
 
@@ -23,6 +24,8 @@ const ModalUI: React.FC<Props> = () => {
         <DeleteUserView modalView={modalView} />
       ) : modalView.name === "USER_PERMISSIONS" ? (
         <UserPermissionsView modalView={modalView} />
+      ) : modalView.name === "FILTER_PERMISSIONS" ? (
+        <FilterPermissionsView modalView={modalView} />
       ) : null}
       {/* {modalView.name === "WALLET_PASSWORD" ? (
         <WalletPasswordView modalView={modalView} />
