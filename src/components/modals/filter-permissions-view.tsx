@@ -124,9 +124,7 @@ export const FilterPermissionsView: React.FC<FilterPermissionsViewProps> = ({
     (newSelectedIds: string[]) => {
       setSelectedIds(newSelectedIds);
       startTransition(() => {
-        setTimeout(() => {
-          setPermissionFilter(newSelectedIds);
-        }, 0);
+        setPermissionFilter(newSelectedIds);
       });
     },
     [setPermissionFilter]
@@ -167,9 +165,7 @@ export const FilterPermissionsView: React.FC<FilterPermissionsViewProps> = ({
     setSelectedIds([]);
 
     startTransition(() => {
-      setTimeout(() => {
-        setPermissionFilter(null); // Remove query param entirely
-      }, 0);
+      setPermissionFilter(null);
     });
   }, [setPermissionFilter]);
 
