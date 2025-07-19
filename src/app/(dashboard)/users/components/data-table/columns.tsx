@@ -171,7 +171,7 @@ export const getColumns = (
     enableSorting: true,
     enableResizing: true,
     size: 150,
-    minSize: 100,
+    minSize: 130,
     maxSize: 250,
   },
   {
@@ -187,7 +187,7 @@ export const getColumns = (
     enableSorting: true,
     enableResizing: true,
     size: 150,
-    minSize: 100,
+    minSize: 120,
     maxSize: 250,
   },
   {
@@ -232,7 +232,7 @@ export const getColumns = (
     enableSorting: true,
     enableResizing: true,
     size: 120,
-    minSize: 80,
+    minSize: 95,
     maxSize: 200,
   },
   {
@@ -251,8 +251,8 @@ export const getColumns = (
     enableSorting: true,
     enableResizing: true,
     size: 200,
-    minSize: 150,
-    maxSize: 300,
+    minSize: 260,
+    maxSize: 400,
   },
   {
     accessorKey: "isEmailConfirmed",
@@ -285,8 +285,8 @@ export const getColumns = (
     enableSorting: true,
     enableResizing: true,
     size: 130,
-    minSize: 100,
-    maxSize: 180,
+    minSize: 150,
+    maxSize: 200,
   },
   {
     accessorKey: "isActive",
@@ -321,8 +321,8 @@ export const getColumns = (
     enableSorting: true,
     enableResizing: true,
     size: 100,
-    minSize: 80,
-    maxSize: 150,
+    minSize: 100,
+    maxSize: 180,
   },
 
   {
