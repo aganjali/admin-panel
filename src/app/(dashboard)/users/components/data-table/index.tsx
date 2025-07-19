@@ -25,6 +25,7 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  ColumnSizingState,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -42,6 +43,7 @@ import { DraggableRow } from "./draggable-row";
 import { DataTableHeader } from "./header";
 import { DataTableToolbar } from "./toolbar";
 import { DataTablePagination } from "./pagination";
+import { DataTableResizer } from "./resizer";
 import { Loader2 } from "lucide-react";
 
 interface UsersDataTableProps {
@@ -98,6 +100,7 @@ export function UsersDataTable({
   );
   const [localSearchValue, setLocalSearchValue] = useState(searchValue);
   const [isSearching, setIsSearching] = useState(false);
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const sortableId = useId();
 
   const sensors = useSensors(
@@ -160,6 +163,7 @@ export function UsersDataTable({
           value: roleFilter,
         },
       ],
+      columnSizing,
     },
     getRowId: (row, index) => (row.id ?? `temp-${index}`).toString(),
     onSortingChange: (updaterOrValue) => {
@@ -173,11 +177,15 @@ export function UsersDataTable({
       );
     },
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnSizingChange: setColumnSizing,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     manualPagination: true,
     manualSorting: true,
     pageCount: Math.ceil(totalCount / pageSize),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    columnResizeDirection: "ltr",
   });
 
   function handleDragEnd(event: DragEndEvent) {
@@ -231,7 +239,13 @@ export function UsersDataTable({
               sensors={sensors}
               id={sortableId}
             >
-              <Table className="w-auto min-w-full table-auto relative">
+              <Table
+                className="relative"
+                style={{
+                  tableLayout: "fixed",
+                  width: table.getTotalSize(),
+                }}
+              >
                 <TableHeader className="bg-muted sticky top-0 z-10">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
@@ -243,7 +257,11 @@ export function UsersDataTable({
                           <TableHead
                             key={header.id}
                             colSpan={header.colSpan}
+                            style={{
+                              width: header.getSize(),
+                            }}
                             className={cn(
+                              "group/th relative",
                               isDragColumn
                                 ? "text-center px-2 py-2 w-auto"
                                 : "text-left px-3 py-2 whitespace-nowrap w-auto",
@@ -251,7 +269,7 @@ export function UsersDataTable({
                                 "sticky -right-0.5 bg-muted z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
                             )}
                           >
-                            <div className="flex items-center w-max">
+                            <div className="flex items-center w-full relative">
                               {header.isPlaceholder
                                 ? null
                                 : flexRender(
@@ -259,6 +277,9 @@ export function UsersDataTable({
                                     header.getContext()
                                   )}
                             </div>
+                            {header.column.getCanResize() && (
+                              <DataTableResizer header={header} />
+                            )}
                           </TableHead>
                         );
                       })}

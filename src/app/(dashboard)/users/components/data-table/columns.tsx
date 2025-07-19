@@ -123,6 +123,9 @@ export const getColumns = (
     enableSorting: false,
     enableResizing: false,
     enableHiding: false,
+    size: 50,
+    minSize: 50,
+    maxSize: 50,
   },
   {
     id: "userName",
@@ -133,7 +136,7 @@ export const getColumns = (
     cell: ({ row }) => {
       const user = row.original;
       return (
-        <div className="flex items-center gap-3 w-max">
+        <div className="flex items-center gap-3 overflow-hidden truncate">
           <Avatar className="w-8 h-8 border-2 flex-shrink-0">
             {/* <AvatarImage src={user.avatar} alt={user.fullName} /> */}
             <AvatarFallback>{user.initials}</AvatarFallback>
@@ -149,6 +152,10 @@ export const getColumns = (
     },
     enableHiding: false,
     enableSorting: true,
+    enableResizing: true,
+    size: 200,
+    minSize: 150,
+    maxSize: 300,
   },
   {
     id: "firstName",
@@ -162,6 +169,10 @@ export const getColumns = (
       </span>
     ),
     enableSorting: true,
+    enableResizing: true,
+    size: 150,
+    minSize: 100,
+    maxSize: 250,
   },
   {
     accessorKey: "surname",
@@ -174,6 +185,10 @@ export const getColumns = (
       </span>
     ),
     enableSorting: true,
+    enableResizing: true,
+    size: 150,
+    minSize: 100,
+    maxSize: 250,
   },
   {
     accessorKey: "roles",
@@ -183,7 +198,7 @@ export const getColumns = (
     cell: ({ row }) => {
       const roles = row.original.roles ?? [];
       return (
-        <div className="flex flex-wrap gap-1 w-max">
+        <div className="flex flex-wrap gap-1 overflow-hidden">
           {roles.length > 0 ? (
             roles.map((role) => (
               <Badge
@@ -215,6 +230,10 @@ export const getColumns = (
       return rolesA - rolesB;
     },
     enableSorting: true,
+    enableResizing: true,
+    size: 120,
+    minSize: 80,
+    maxSize: 200,
   },
   {
     accessorKey: "emailAddress",
@@ -230,6 +249,10 @@ export const getColumns = (
       </span>
     ),
     enableSorting: true,
+    enableResizing: true,
+    size: 200,
+    minSize: 150,
+    maxSize: 300,
   },
   {
     accessorKey: "isEmailConfirmed",
@@ -239,7 +262,7 @@ export const getColumns = (
     cell: ({ row }) => {
       const isConfirmed = row.original.isEmailConfirmed;
       return (
-        <div className="flex items-center gap-2 w-max">
+        <div className="flex items-center gap-2 overflow-hidden">
           <Badge
             variant="outline"
             className="text-muted-foreground px-1.5 whitespace-nowrap"
@@ -260,6 +283,10 @@ export const getColumns = (
       );
     },
     enableSorting: true,
+    enableResizing: true,
+    size: 130,
+    minSize: 100,
+    maxSize: 180,
   },
   {
     accessorKey: "isActive",
@@ -269,7 +296,7 @@ export const getColumns = (
     cell: ({ row }) => {
       const isActive = row.original.isActive;
       return (
-        <div className="flex items-center gap-2 w-max">
+        <div className="flex items-center gap-2 overflow-hidden">
           <div className="flex items-center gap-2">
             <Badge
               variant="outline"
@@ -292,6 +319,10 @@ export const getColumns = (
       );
     },
     enableSorting: true,
+    enableResizing: true,
+    size: 100,
+    minSize: 80,
+    maxSize: 150,
   },
 
   {
@@ -308,6 +339,10 @@ export const getColumns = (
       );
     },
     enableSorting: true,
+    enableResizing: true,
+    size: 140,
+    minSize: 120,
+    maxSize: 200,
   },
 
   {
@@ -315,11 +350,13 @@ export const getColumns = (
     // header: "Actions",
     header: () => null,
     enableSorting: false,
+    enableResizing: false,
     size: 80,
     minSize: 80,
+    maxSize: 80,
     cell: ({ row }) => {
       return (
-        <div className="w-max  flex justify-center">
+        <div className="flex justify-center">
           <ActionsList
             user={row.original}
             isDeleting={isDeleting}

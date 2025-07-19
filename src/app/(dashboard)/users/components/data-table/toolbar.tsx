@@ -26,6 +26,7 @@ import {
   RotateCcw,
   Upload,
   Download,
+  XSquare,
 } from "lucide-react";
 import type { Table } from "@tanstack/react-table";
 import type { UserListWithAvatarDto } from "@/types";
@@ -176,6 +177,15 @@ export function DataTableToolbar({
 
       {/* Right side - Actions */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+        {/* Reset column sizes */}
+        <Button
+          variant="outline"
+          onClick={() => table.resetColumnSizing()}
+          className="flex items-center gap-2"
+        >
+          <XSquare className="h-4 w-4" />
+          <span>Reset Columns</span>
+        </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

@@ -38,15 +38,18 @@ export function DraggableRow({ row }: { row: Row<UserListWithAvatarDto> }) {
         return (
           <TableCell
             key={cell.id}
+            style={{
+              width: cell.column.getSize(),
+            }}
             className={cn(
-              isDragColumn && "px-2 py-2 w-auto",
-              !isDragColumn && "px-3 py-2 whitespace-nowrap w-auto",
+              isDragColumn && "px-2 py-2",
+              !isDragColumn && "px-3 py-2 whitespace-nowrap",
               isActionColumn &&
                 "sticky -right-0.5 bg-background z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
             )}
           >
             {cellIndex === 0 ? (
-              <div className="flex items-center justify-center w-max">
+              <div className="flex items-center justify-center">
                 <Button
                   {...attributes}
                   {...listeners}
@@ -59,11 +62,11 @@ export function DraggableRow({ row }: { row: Row<UserListWithAvatarDto> }) {
                 </Button>
               </div>
             ) : isUserNameColumn ? (
-              <div className="w-max">
+              <div className="flex items-center gap-3 overflow-hidden truncate">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </div>
             ) : (
-              <div className="w-max">
+              <div className="overflow-hidden truncate">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </div>
             )}
