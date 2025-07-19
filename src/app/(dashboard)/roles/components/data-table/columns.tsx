@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { format, parseISO } from "date-fns";
 import { Loader2 } from "lucide-react";
 import {
+  IconCircleCheckFilled,
   IconDotsVertical,
   IconEdit,
   IconShield,
@@ -16,6 +17,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 export interface RoleListDto {
   id?: number;
@@ -46,6 +48,27 @@ export const getRoleColumns = (
           >
             {role.displayName ?? "Unnamed Role"}{" "}
           </Button>
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "isStatic",
+    header: "Type",
+    cell: ({ row }) => {
+      const isStatic = row.original.isStatic;
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant="outline" className="px-1.5">
+            {isStatic ? (
+              <>
+                <IconCircleCheckFilled className="fill-blue-500 dark:fill-blue-400 mr-1 h-3 w-3" />
+                System
+              </>
+            ) : (
+              <>Custom</>
+            )}
+          </Badge>
         </div>
       );
     },

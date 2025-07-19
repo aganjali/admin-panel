@@ -12,8 +12,11 @@ import { roleApi } from "@/lib/api/role";
 import { RolesDataTable } from ".";
 import { RoleEditSheet } from "../../edit-role/page";
 import RoleCreateSheet from "../../create-role/page";
+import { useUI } from "@/services/managed-ui";
 
 export function RolesView() {
+  const { openModal, setModalView } = useUI();
+
   const [editingRole, setEditingRole] = useState<RoleListDto | null>(null);
   const [isCreateSheetOpen, setIsCreateSheetOpen] = useState(false);
 
@@ -68,16 +71,22 @@ export function RolesView() {
   }
 
   const handleRoleAction = (action: "edit" | "delete", role: RoleListDto) => {
+    console.log("Action triggered:", { action, role });
     if (action === "edit") {
       setEditingRole(role);
     } else if (action === "delete" && role.id) {
-      if (
-        window.confirm(
-          `Are you sure you want to delete the role "${role.displayName}"?`
-        )
-      ) {
-        deleteRole.mutate(role.id);
-      }
+      console.log("Preparing to open DELETE_ROLE modal for role ID:", role.id);
+      setModalView({
+        name: "DELETE_ROLE",
+        args: {
+          roleId: role.id,
+          roleName: role.displayName,
+          onConfirm: async () => {
+            await deleteRole.mutateAsync(role.id!);
+          },
+        },
+      });
+      openModal();
     }
   };
 
