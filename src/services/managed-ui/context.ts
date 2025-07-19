@@ -17,6 +17,11 @@ export interface UserPermissionsViewArgs {
   userId: number;
   userName?: string;
 }
+export interface DeleteRoleViewArgs {
+  roleId: number;
+  roleName?: string | null;
+  onConfirm: () => Promise<void>;
+}
 
 export interface FilterPermissionsViewArgs {}
 
@@ -42,6 +47,10 @@ export type MODAL_ARGS =
   | {
       name: "IMPORT_EXCEL";
       args: ImportExcelViewArgs;
+    }
+  | {
+      name: "DELETE_ROLE";
+      args: DeleteRoleViewArgs;
     };
 
 export type ModalProps = DialogContentProps & {

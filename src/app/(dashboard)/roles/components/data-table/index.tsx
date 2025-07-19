@@ -104,7 +104,8 @@ export function RolesDataTable({
           <div className="overflow-hidden rounded-lg border">
             <Table className="w-full table-fixed">
               <colgroup>
-                <col className="w-48" />
+                <col className="w-40" />
+                <col className="w-24" />
                 <col className="w-32" />
                 <col className="w-24" />
               </colgroup>
