@@ -1,6 +1,6 @@
 import { AuthGuard } from "@/components/guards/auth-gurad";
 import { perms } from "@/lib/perms";
-import { RolesView } from "./components/data-table/view";
+import { RolesView } from "./components/view";
 
 export default function RolesPage() {
   return (
