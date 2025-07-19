@@ -82,15 +82,15 @@ export function RoleEditSheet({
           </form>
         </div>
         <SheetFooter>
-          <Button form="edit-role-form" type="submit">
-            Submit
-          </Button>
           <Button
             variant="outline"
             type="button"
             onClick={() => onOpenChange(false)}
           >
             Cancel{" "}
+          </Button>
+          <Button form="edit-role-form" type="submit">
+            Submit
           </Button>
         </SheetFooter>
       </SheetContent>

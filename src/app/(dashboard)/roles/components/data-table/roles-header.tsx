@@ -1,10 +1,5 @@
-import { useRouter } from "next/navigation";
 import { Table } from "@tanstack/react-table";
-import {
-  IconLayoutColumns,
-  IconPlus, // آیکون عوض شد
-} from "@tabler/icons-react";
-
+import { IconLayoutColumns, IconPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,11 +11,10 @@ import { RoleListDto } from "@/types";
 
 interface RolesHeaderProps {
   table: Table<RoleListDto>;
+  onCreate: () => void;
 }
 
-export function RolesHeader({ table }: RolesHeaderProps) {
-  const router = useRouter();
-
+export function RolesHeader({ table, onCreate }: RolesHeaderProps) {
   return (
     <div className="flex items-center justify-between px-4 lg:px-6">
       <div>
@@ -59,11 +53,7 @@ export function RolesHeader({ table }: RolesHeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => router.push("/roles/create-role")}
-        >
+        <Button variant="outline" size="sm" onClick={onCreate}>
           <IconPlus className="mr-2 h-4 w-4" />
           Create Role
         </Button>
