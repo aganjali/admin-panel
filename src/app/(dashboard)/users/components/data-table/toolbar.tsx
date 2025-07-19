@@ -81,23 +81,23 @@ export function DataTableToolbar({
     hasPermissionFilter ||
     onlyLockedUsers;
 
+  const hasColumnSizing =
+    Object.keys(table.getState().columnSizing).length > 0 ||
+    table.getState().columnSizingInfo?.isResizingColumn;
+
   const handleReset = () => {
-    // Clear all filters and query params
     onSearchChange("");
     onRoleFilterChange([]);
     onOnlyLockedUsersChange(false);
-    setPermissionFilter(null); // Clear permissions query param
-
-    // Optional: Navigate to clean URL without query params
+    setPermissionFilter(null);
     const currentPath = window.location.pathname;
     router.push(currentPath);
   };
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-4">
-      {/* Left side - Search and Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 flex-1">
-        <div className="relative w-full max-w-sm">
+    <div className="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mt-4">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4 flex-1">
+        <div className="relative w-full max-w-[15rem]">
           {isSearching ? (
             <Loader2 className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground animate-spin" />
           ) : (
@@ -119,7 +119,7 @@ export function DataTableToolbar({
               onRoleFilterChange(roles);
             }}
           >
-            <SelectTrigger className="min-w-40">
+            <SelectTrigger>
               <SelectValue placeholder="Filter by role">
                 {roleFilter.length > 0 ? roleFilter[0] : "All roles"}
               </SelectValue>
@@ -149,7 +149,7 @@ export function DataTableToolbar({
                 : "whitespace-nowrap"
             }
           >
-            <Shield className="h-5 w-5" />
+            <Shield className="size-5" />
             <span>Filter by Permissions</span>
             {hasPermissionFilter && (
               <span className="ml-2 inline-flex items-center justify-center w-5 h-5 text-xs font-medium text-primary-foreground bg-primary rounded-full">
@@ -175,17 +175,18 @@ export function DataTableToolbar({
         </div>
       </div>
 
-      {/* Right side - Actions */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        {/* Reset column sizes */}
-        <Button
-          variant="outline"
-          onClick={() => table.resetColumnSizing()}
-          className="flex items-center gap-2"
-        >
-          <XSquare className="h-4 w-4" />
-          <span>Reset Columns</span>
-        </Button>
+      <div className="flex flex-col sm:flex-row sm:flex-wrap items-start sm:items-center gap-4">
+        {hasColumnSizing && (
+          <Button
+            variant="secondary"
+            onClick={() => table.resetColumnSizing()}
+            className="flex items-center gap-2"
+          >
+            <XSquare className="h-4 w-4" />
+            <span>Reset Column Sizes</span>
+          </Button>
+        )}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -228,6 +229,7 @@ export function DataTableToolbar({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
