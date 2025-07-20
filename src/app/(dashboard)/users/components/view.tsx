@@ -1,110 +1,68 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, keepPreviousData } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api/users";
-import type { ApiServicesAppUserDeleteuserDeleteParams } from "@/types/api/data-contracts";
+import type {
+  ApiServicesAppUserDeleteuserDeleteParams,
+  ApiServicesAppUserGetusersGetParams,
+  ApiServicesAppUserGetuserstoexcelGetParams,
+  UpdateUserPermissionsInput,
+} from "@/types/api/data-contracts";
 import {
   useQueryStates,
   parseAsInteger,
   parseAsString,
   parseAsArrayOf,
-  parseAsJson,
   parseAsBoolean,
 } from "nuqs";
 import { toast } from "sonner";
 import { useUI } from "@/services/managed-ui";
 import { UsersDataTable } from "./data-table";
 import { getAvatar } from "@/lib/imgs";
-const buildUserQueryParams = (params: {
-  page: number;
-  limit: number;
-  search?: string;
-  roles?: string[];
-  permissions?: string[];
-  onlyLockedUsers?: boolean;
-  sorting?: Array<{ id: string; desc: boolean }>;
-}) => {
-  const ROLE_NAME_TO_ID: Record<string, number> = { Admin: 2, User: 3 };
-
-  // Map column IDs to API sort fields
-  const SORT_FIELD_MAP: Record<string, string> = {
-    userName: "Name",
-    firstName: "Name",
-    surname: "Surname",
-    emailAddress: "EmailAddress",
-    isEmailConfirmed: "IsEmailConfirmed",
-    isActive: "IsActive",
-    creationTime: "CreationTime",
-    roles: "Name", // Sort by name when sorting roles
-  };
-
-  let sorting = "";
-  if (params.sorting && params.sorting.length > 0) {
-    const sortItem = params.sorting[0];
-    const sortField = SORT_FIELD_MAP[sortItem.id];
-    if (sortField) {
-      sorting = `${sortField} ${sortItem.desc ? "DESC" : "ASC"}`;
-    }
-  }
-
-  const permissions =
-    params.permissions && params.permissions.length > 0
-      ? params.permissions.filter(
-          (p) => typeof p === "string" && p.trim() !== ""
-        )
-      : undefined;
-
-  const queryParams: any = {
-    SkipCount: (params.page - 1) * params.limit,
-    MaxResultCount: params.limit,
-    Filter: params.search,
-    Sorting: sorting || undefined,
-    Role:
-      params.roles && params.roles.length > 0
-        ? ROLE_NAME_TO_ID[params.roles[0]]
-        : undefined,
-    OnlyLockedUsers: params.onlyLockedUsers || undefined,
-  };
-
-  if (permissions && permissions.length > 0) {
-    permissions.forEach((permission, index) => {
-      queryParams[`Permissions[${index}]`] = permission;
-    });
-  }
-
-  return queryParams;
-};
+import { queryClient } from "@/lib/query";
+import { usePaginationSortFilter } from "@/hooks/use-pagintaion-sort";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Loader2, Trash2 } from "lucide-react";
+import { useState } from "react";
 
 export function UsersView() {
   const router = useRouter();
   const { openModal, setModalView } = useUI();
+  const [deleteId, setDeleteId] = useState<number | null>(null);
+  const {
+    query: psfQuery,
+    params: psf,
+    handleFilterChange,
+    resetPage,
+    handlePageChange,
+    handlePageSizeChange,
+    handleSortChange,
+  } = usePaginationSortFilter();
 
   const [urlParams, setUrlParams] = useQueryStates({
-    page: parseAsInteger.withDefault(1),
-    limit: parseAsInteger.withDefault(15),
-    search: parseAsString.withDefault(""),
-    roles: parseAsArrayOf(parseAsString).withDefault([]),
-    permissions: parseAsArrayOf(parseAsString, ",").withDefault([]),
-    onlyLockedUsers: parseAsBoolean.withDefault(false),
-    sorting: parseAsJson((value: any): Array<{ id: string; desc: boolean }> => {
-      if (Array.isArray(value)) {
-        return value.filter(
-          (item) =>
-            typeof item === "object" &&
-            typeof item.id === "string" &&
-            typeof item.desc === "boolean"
-        );
-      }
-      return [];
-    }).withDefault([]),
+    role: parseAsInteger.withDefault(0),
+    permissions: parseAsArrayOf(parseAsString).withDefault([]),
+    onlyLockedUsers: parseAsBoolean,
   });
-
-  const queryClient = useQueryClient();
-
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["users", urlParams],
-    queryFn: () => usersApi.getUsers(buildUserQueryParams(urlParams)).fetch(),
+  const query: ApiServicesAppUserGetusersGetParams = {
+    ...psfQuery,
+    OnlyLockedUsers: urlParams.onlyLockedUsers ?? undefined,
+    Permissions: urlParams.permissions ?? undefined,
+    Role: urlParams.role || undefined,
+  };
+  const { data, isPlaceholderData, isFetching, isLoading, error } = useQuery({
+    queryKey: ["users", urlParams, psf],
+    queryFn: () => usersApi.getUsers(query).fetch(),
     select: (res) => ({
       ...res.result,
       items: (res.result.items ?? []).map((m) => ({
@@ -117,13 +75,19 @@ export function UsersView() {
           (m.surname?.charAt(0).toUpperCase() ?? ""),
       })),
     }),
+    placeholderData: keepPreviousData,
   });
-  console.log(data?.items);
+
   const deleteUser = useMutation({
     mutationFn: (params: ApiServicesAppUserDeleteuserDeleteParams) =>
       usersApi.deleteUser(params).fetch(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+    onSuccess: (_, params) => {
+      queryClient.invalidateQueries({ queryKey: ["users"], exact: false });
+      if (params.Id)
+        queryClient.resetQueries({
+          queryKey: ["user", params.Id],
+          exact: true,
+        });
       toast.success("User deleted successfully");
     },
     onError: () => toast.error("Failed to delete user"),
@@ -132,24 +96,16 @@ export function UsersView() {
   const exportToExcel = useMutation({
     mutationFn: async () => {
       const exportParams = {
-        Filter: urlParams.search || undefined,
-        Permissions:
-          urlParams.permissions.length > 0 ? urlParams.permissions : undefined,
-        Role:
-          urlParams.roles.length > 0
-            ? { Admin: 2, User: 3 }[urlParams.roles[0]]
-            : undefined,
-        OnlyLockedUsers: urlParams.onlyLockedUsers || undefined,
-        Sorting:
-          urlParams.sorting.length > 0
-            ? `${urlParams.sorting[0].id} ${
-                urlParams.sorting[0].desc ? "DESC" : "ASC"
-              }`
-            : undefined,
+        ...query,
         SelectedColumns: ["Name", "Surname", "UserName"],
       };
-
-      const response = await usersApi.getUsersToExcel(exportParams).fetch();
+      delete exportParams.MaxResultCount;
+      delete exportParams.SkipCount;
+      const response = await usersApi
+        .getUsersToExcel(
+          exportParams as ApiServicesAppUserGetuserstoexcelGetParams
+        )
+        .fetch();
       console.log("Export response:", response);
       return response.result;
     },
@@ -163,6 +119,31 @@ export function UsersView() {
         error?.message ||
         "Failed to export users";
       toast.error(message);
+    },
+  });
+
+  const resetPerm = useMutation({
+    mutationFn: (id: number) =>
+      usersApi
+        .resetUserSpecificPermissions({
+          id,
+        })
+        .fetch(),
+    onSuccess: () => {
+      toast.success("Permissions reset successfully");
+    },
+    onError: (e) => {
+      toast.error("Failed to reset permissions", { description: e?.message });
+    },
+  });
+  const updatePerms = useMutation({
+    mutationFn: (data: UpdateUserPermissionsInput) =>
+      usersApi.updateUserPermissions(data).fetch(),
+    onSuccess: () => {
+      toast.success("Permissions updated successfully");
+    },
+    onError: (e) => {
+      toast.error("Failed to update permissions", { description: e?.message });
     },
   });
 
@@ -182,25 +163,30 @@ export function UsersView() {
         router.push(`/users/edit-user?id=${userId}`);
         break;
       case "delete":
-        setModalView({
-          name: "DELETE_USER",
-          args: {
-            userId,
-            userName,
-            onConfirm: async () => {
-              await deleteUser.mutateAsync({ Id: userId });
-            },
-          },
-          props: { cancelable: true },
-        });
-        openModal();
+        setDeleteId(userId);
         break;
       case "permissions":
         setModalView({
-          name: "USER_PERMISSIONS",
+          name: "PERMISSIONS_FILTER",
           args: {
             userId,
-            userName,
+            title: "Change User Permissions",
+            desc: (
+              <>
+                Manage permissions for{" "}
+                <span className="font-semibold">{userName || "user"}</span>
+              </>
+            ),
+            reset: async () => {
+              await resetPerm.mutateAsync(userId);
+              return null;
+            },
+            submitFn: async (grantedPermissionNames) => {
+              await updatePerms.mutateAsync({
+                id: userId,
+                grantedPermissionNames,
+              });
+            },
           },
           props: { cancelable: true },
         });
@@ -224,54 +210,82 @@ export function UsersView() {
     exportToExcel.mutate();
   };
 
-  const handleSearchChange = (query: string) => {
-    setUrlParams({ search: query, page: 1 });
+  const handleRoleFilterChange = (role: number) => {
+    setUrlParams({ role });
+    resetPage();
   };
 
-  const handleRoleFilterChange = (roles: string[]) => {
-    setUrlParams({ roles, page: 1 });
+  const handleOnlyLockedUsersChange = (onlyLockedUsers: boolean | null) => {
+    setUrlParams({ onlyLockedUsers });
+    resetPage();
   };
-
-  const handleOnlyLockedUsersChange = (onlyLockedUsers: boolean) => {
-    setUrlParams({ onlyLockedUsers, page: 1 });
-  };
-
-  const handlePageChange = (page: number) => {
-    setUrlParams({ page });
-  };
-
-  const handlePageSizeChange = (limit: number) => {
-    setUrlParams({ limit, page: 1 });
-  };
-
-  const handleSortingChange = (
-    sorting: Array<{ id: string; desc: boolean }>
-  ) => {
-    setUrlParams({ sorting, page: 1 });
+  const handlePermissionsChange = (permissions: string[]) => {
+    setUrlParams({ permissions });
+    resetPage();
   };
 
   return (
-    <UsersDataTable
-      data={users}
-      totalCount={totalCount}
-      isLoading={isLoading}
-      isDeleting={deleteUser.isPending}
-      searchValue={urlParams.search}
-      roleFilter={urlParams.roles}
-      onlyLockedUsers={urlParams.onlyLockedUsers}
-      currentPage={urlParams.page}
-      pageSize={urlParams.limit}
-      sorting={urlParams.sorting}
-      onUserAction={handleUserAction}
-      onSearchChange={handleSearchChange}
-      onRoleFilterChange={handleRoleFilterChange}
-      onOnlyLockedUsersChange={handleOnlyLockedUsersChange}
-      onPageChange={handlePageChange}
-      onPageSizeChange={handlePageSizeChange}
-      onSortingChange={handleSortingChange}
-      onImportExcel={handleImportExcel}
-      onExportExcel={handleExportExcel}
-      isExporting={exportToExcel.isPending}
-    />
+    <>
+      <UsersDataTable
+        data={users}
+        totalCount={totalCount}
+        isLoading={isLoading || (isFetching && isPlaceholderData)}
+        isDeleting={deleteUser.isPending}
+        roleFilter={urlParams.role}
+        onlyLockedUsers={urlParams.onlyLockedUsers}
+        permissions={urlParams.permissions}
+        currentPage={psf.page}
+        pageSize={psf.pageSize}
+        searchValue={psf.q}
+        sorting={psf.sort ? [psf.sort] : []}
+        onUserAction={handleUserAction}
+        onSearchChange={handleFilterChange}
+        onRoleFilterChange={handleRoleFilterChange}
+        onPermissionsChange={handlePermissionsChange}
+        onOnlyLockedUsersChange={handleOnlyLockedUsersChange}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+        onSortingChange={handleSortChange}
+        onImportExcel={handleImportExcel}
+        onExportExcel={handleExportExcel}
+        isExporting={exportToExcel.isPending}
+      />
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={(o) => !o && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete user
+              and remove all associated data from our servers.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteUser.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteId && deleteUser.mutate({ Id: deleteId })}
+              disabled={deleteUser.isPending}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteUser.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete User
+                </>
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

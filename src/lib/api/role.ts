@@ -10,7 +10,7 @@ import {
 import { http } from "../http";
 
 export const roleApi = {
-  getRoles: (data: GetRolesInput) =>
+  getRoles: (data: GetRolesInput = { permissions: [] }) =>
     http.post<ApiResponse<ListResultDtoOfRoleListDto>, GetRolesInput>({
       url: "/api/services/app/Role/GetRoles",
       data,

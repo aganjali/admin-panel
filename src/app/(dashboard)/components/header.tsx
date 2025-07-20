@@ -1,6 +1,7 @@
 "use client";
 import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
 import { NotificationPanel } from "@/components/notification-panel";
+import ProfileDropdown from "@/components/profile-dropdown";
 import { SettingsDrawer } from "@/components/settings/settings-drawer";
 import { Separator } from "@/components/ui/separator";
 import { SidebarTrigger } from "@/components/ui/sidebar";
@@ -19,8 +20,8 @@ export function DashboardHeader() {
         <div className="ml-auto flex items-center gap-2">
           {/* <LanguageSwitch /> */}
           <NotificationPanel />
-          {/* <ThemeToggle /> */}
           <SettingsDrawer />
+          <ProfileDropdown />
         </div>
       </div>
     </header>

@@ -128,7 +128,7 @@ export class HttpService {
       fullUrl.search = queryString.stringify(queryParams, {
         skipNull: true,
         skipEmptyString: true,
-        arrayFormat: "bracket",
+        arrayFormat: "none",
       });
     }
     let controller: AbortController | undefined;

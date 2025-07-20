@@ -1,7 +1,7 @@
 import type { RequiredProp } from "@/types";
 import type { DialogContentProps } from "@/components/ui/dialog";
 
-import { createContext } from "react";
+import { createContext, ReactNode } from "react";
 
 export interface WalletPasswordViewArgs {
   submitFn?: (password: string) => Promise<void>;
@@ -13,17 +13,17 @@ export interface DeleteUserViewArgs {
   onConfirm: () => Promise<void>;
 }
 
-export interface UserPermissionsViewArgs {
-  userId: number;
-  userName?: string;
-}
-export interface DeleteRoleViewArgs {
-  roleId: number;
-  roleName?: string | null;
-  onConfirm: () => Promise<void>;
-}
+export type PermissionsFilterViewArgs = {
+  title?: ReactNode;
+  desc?: ReactNode;
 
-export interface FilterPermissionsViewArgs {}
+  submitFn: (selectedIds: string[]) => Promise<void>;
+  reset: () => Promise<string[] | null>;
+} & (
+  | { userId: number; selectedIds?: never }
+  | { selectedIds: string[]; userId?: never }
+);
+// export interface FilterPermissionsViewArgs {}
 
 export interface ImportExcelViewArgs {}
 
@@ -33,24 +33,16 @@ export type MODAL_ARGS =
       args: WalletPasswordViewArgs;
     }
   | {
-      name: "DELETE_USER";
-      args: DeleteUserViewArgs;
+      name: "PERMISSIONS_FILTER";
+      args: PermissionsFilterViewArgs;
     }
-  | {
-      name: "USER_PERMISSIONS";
-      args: UserPermissionsViewArgs;
-    }
-  | {
-      name: "FILTER_PERMISSIONS";
-      args: FilterPermissionsViewArgs;
-    }
+  // | {
+  //     name: "FILTER_PERMISSIONS";
+  //     args: FilterPermissionsViewArgs;
+  //   }
   | {
       name: "IMPORT_EXCEL";
       args: ImportExcelViewArgs;
-    }
-  | {
-      name: "DELETE_ROLE";
-      args: DeleteRoleViewArgs;
     };
 
 export type ModalProps = DialogContentProps & {

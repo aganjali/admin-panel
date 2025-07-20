@@ -83,7 +83,6 @@ export const SortableHeader = ({
         </DropdownMenuContent>
       </DropdownMenu>
       {/* Empty space to allow resizer to work */}
-      <div className="flex-1" />
     </div>
   );
 };

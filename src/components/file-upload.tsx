@@ -893,6 +893,7 @@ function FileUploadList(props: FileUploadListProps) {
   const ListPrimitive = asChild ? Slot : "div";
 
   return (
+    // eslint-disable-next-line jsx-a11y/role-supports-aria-props
     <ListPrimitive
       role="list"
       id={context.listId}
@@ -1091,6 +1092,7 @@ function FileUploadItemPreview(props: FileUploadItemPreviewProps) {
         }
 
         return (
+          // eslint-disable-next-line @next/next/no-img-element
           <img src={url} alt={file.name} className="size-full object-cover" />
         );
       }

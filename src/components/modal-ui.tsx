@@ -2,12 +2,8 @@
 
 import { useUI } from "@/services/managed-ui";
 import { Dialog } from "@/components/ui/dialog";
-import { DeleteUserView } from "@/components/modals/delete-user-view";
-import { UserPermissionsView } from "@/components/modals/user-permissions-view";
-import { FilterPermissionsView } from "./modals/filter-permissions-view";
 import { ImportExcelView } from "./modals/import-excel-view";
-// Add the import for the new DeleteRoleView component
-import { DeleteRoleView } from "@/components/modals/delete-role-view";
+import { PermissionFilterView } from "./modals/permission-filter-view";
 
 interface Props {}
 
@@ -23,17 +19,16 @@ const ModalUI: React.FC<Props> = () => {
       }}
       open={displayModal}
     >
-      {modalView.name === "DELETE_USER" ? (
-        <DeleteUserView modalView={modalView} />
-      ) : modalView.name === "USER_PERMISSIONS" ? (
-        <UserPermissionsView modalView={modalView} />
-      ) : modalView.name === "FILTER_PERMISSIONS" ? (
-        <FilterPermissionsView modalView={modalView} />
-      ) : modalView.name === "IMPORT_EXCEL" ? (
-        <ImportExcelView />
-      ) : modalView.name === "DELETE_ROLE" ? (
-        <DeleteRoleView modalView={modalView} />
-      ) : null}
+      {
+        // modalView.name === "DELETE_USER" ? (
+        //   <DeleteUserView modalView={modalView} />
+        // ) :
+        modalView.name === "PERMISSIONS_FILTER" ? (
+          <PermissionFilterView modalView={modalView} />
+        ) : modalView.name === "IMPORT_EXCEL" ? (
+          <ImportExcelView />
+        ) : null
+      }
       {/* {modalView.name === "WALLET_PASSWORD" ? (
         <WalletPasswordView modalView={modalView} />
       ) : modalView.name === "WALLET_BACKUP" ? (
