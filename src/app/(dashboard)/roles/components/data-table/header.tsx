@@ -1,4 +1,6 @@
-import { Table } from "@tanstack/react-table";
+"use client";
+
+import type { Table } from "@tanstack/react-table";
 import { IconLayoutColumns, IconPlus } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -7,7 +9,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { RoleListDto } from "@/types";
+import type { RoleListDto } from "@/types";
 
 interface RolesHeaderProps {
   table: Table<RoleListDto>;
@@ -16,14 +18,13 @@ interface RolesHeaderProps {
 
 export function RolesHeader({ table, onCreate }: RolesHeaderProps) {
   return (
-    <div className="flex items-center justify-between px-4 lg:px-6">
+    <div className="flex items-center justify-between">
       <div>
         <h2 className="text-2xl font-bold tracking-tight">Roles</h2>
         <p className="text-muted-foreground">
           Manage application roles and permissions
         </p>
       </div>
-
       <div className="flex items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -52,7 +53,6 @@ export function RolesHeader({ table, onCreate }: RolesHeaderProps) {
               })}
           </DropdownMenuContent>
         </DropdownMenu>
-
         <Button variant="outline" size="sm" onClick={onCreate}>
           <IconPlus className="mr-2 h-4 w-4" />
           Create Role

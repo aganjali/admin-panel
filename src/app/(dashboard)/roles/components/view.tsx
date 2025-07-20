@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { roleApi } from "@/lib/api/role";
 import { toast } from "sonner";
@@ -12,10 +12,13 @@ import type {
   RoleListDto,
   CreateOrUpdateRoleInput,
 } from "@/types/api/data-contracts";
+import { UserContext } from "@/services/user/context";
+import { perms } from "@/lib/perms";
 
 export function RolesView() {
   const { openModal, setModalView } = useUI();
   const queryClient = useQueryClient();
+  const { checkPerms } = useContext(UserContext);
 
   const [createSheetOpen, setCreateSheetOpen] = useState(false);
   const [editSheetOpen, setEditSheetOpen] = useState(false);
@@ -87,30 +90,46 @@ export function RolesView() {
   ) => {
     switch (action) {
       case "edit":
-        setSelectedRole(role);
-        setEditSheetOpen(true);
+        if (
+          checkPerms({ list: [perms.adminPanel.administration.roles.edit] })
+        ) {
+          setSelectedRole(role);
+          setEditSheetOpen(true);
+        } else {
+          toast.error("You don't have permission to edit roles");
+        }
         break;
       case "delete":
-        if (role.id) {
-          setModalView({
-            name: "DELETE_ROLE",
-            args: {
-              roleId: role.id,
-              roleName: role.displayName,
-              onConfirm: async () => {
-                await deleteRole.mutateAsync(role.id!);
+        if (
+          checkPerms({ list: [perms.adminPanel.administration.roles.delete] })
+        ) {
+          if (role.id) {
+            setModalView({
+              name: "DELETE_ROLE",
+              args: {
+                roleId: role.id,
+                roleName: role.displayName,
+                onConfirm: async () => {
+                  await deleteRole.mutateAsync(role.id!);
+                },
               },
-            },
-            props: { cancelable: true },
-          });
-          openModal();
+              props: { cancelable: true },
+            });
+            openModal();
+          }
+        } else {
+          toast.error("You don't have permission to delete roles");
         }
         break;
     }
   };
 
   const handleCreate = () => {
-    setCreateSheetOpen(true);
+    if (checkPerms({ list: [perms.adminPanel.administration.roles.create] })) {
+      setCreateSheetOpen(true);
+    } else {
+      toast.error("You don't have permission to create roles");
+    }
   };
 
   const handleCreateSave = async (newName: string) => {

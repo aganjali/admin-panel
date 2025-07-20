@@ -1,14 +1,12 @@
-"use client";
-
+import { DataTablePagination } from "@/app/(dashboard)/users/components/data-table/pagination";
+import { Loader2 } from "lucide-react";
 import { useState, useMemo } from "react";
 import {
-  flexRender,
+  useReactTable,
   getCoreRowModel,
   getSortedRowModel,
   getPaginationRowModel,
-  SortingState,
-  useReactTable,
-  VisibilityState,
+  flexRender,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -18,12 +16,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RoleListDto } from "@/types";
-
+import { RolesHeader } from "./header";
 import { getRoleColumns } from "./columns";
-import { RolesHeader } from "./roles-header";
-import { Loader2 } from "lucide-react";
-import { DataTablePagination } from "@/app/(dashboard)/users/components/data-table/pagination";
+import type { VisibilityState, SortingState } from "@tanstack/react-table";
+import { RoleListDto } from "@/types";
 
 interface RolesDataTableProps {
   data: RoleListDto[];
@@ -90,42 +86,28 @@ export function RolesDataTable({
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="w-full flex-col justify-start gap-6 space-y-4">
+    <div className="w-full space-y-4 sm:space-y-6">
       <RolesHeader table={table} onCreate={onCreate} />
 
-      <div className="relative flex flex-col gap-4 px-4 lg:px-6">
-        <div className="w-full min-w-0">
-          <div className="flex items-center justify-between">
-            <div className="flex flex-1 items-center space-x-2"></div>
-          </div>
-        </div>
-
-        <div className="w-full">
-          <div className="overflow-hidden rounded-lg border">
-            <Table className="w-full table-fixed">
-              <colgroup>
-                <col className="w-40" />
-                <col className="w-24" />
-                <col className="w-32" />
-                <col className="w-24" />
-              </colgroup>
-              <TableHeader className="bg-muted sticky top-0 z-10">
+      <div className="space-y-4">
+        <div className="rounded-lg border">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-muted/50">
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
                       <TableHead
                         key={header.id}
                         colSpan={header.colSpan}
-                        className="text-left px-3 py-2 overflow-hidden"
+                        className="h-12 px-4 text-left align-middle font-medium text-muted-foreground whitespace-nowrap"
                       >
-                        <div className="truncate">
-                          {header.isPlaceholder
-                            ? null
-                            : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
-                        </div>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                       </TableHead>
                     ))}
                   </TableRow>
@@ -134,26 +116,27 @@ export function RolesDataTable({
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={columns.length} className="h-[50vh]">
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-32 text-center"
+                    >
                       <div className="flex justify-center items-center">
-                        <Loader2 className="size-8 text-primary animate-spin" />
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : table.getRowModel()?.rows?.length ? (
                   table.getRowModel().rows.map((row) => (
-                    <TableRow key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted"
+                    >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className="px-3 py-2 overflow-hidden"
-                        >
-                          <div className="truncate">
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext()
-                            )}
-                          </div>
+                        <TableCell key={cell.id} className="p-4 align-middle">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
                         </TableCell>
                       ))}
                     </TableRow>
@@ -162,7 +145,7 @@ export function RolesDataTable({
                   <TableRow>
                     <TableCell
                       colSpan={columns.length}
-                      className="h-24 text-center"
+                      className="h-24 text-center text-muted-foreground"
                     >
                       No roles found.
                     </TableCell>

@@ -1,6 +1,7 @@
 "use client";
 
 import type React from "react";
+import { useContext } from "react";
 
 import {
   Sheet,
@@ -17,6 +18,8 @@ import type { RoleListDto } from "@/types/api/data-contracts";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect, useState } from "react";
 import { IconLoader2, IconShield } from "@tabler/icons-react";
+import { UserContext } from "@/services/user/context";
+import { perms } from "@/lib/perms";
 
 interface RoleEditSheetProps {
   role: RoleListDto | null;
@@ -37,6 +40,7 @@ export function RoleEditSheet({
 }: RoleEditSheetProps) {
   const [hasMounted, setHasMounted] = useState(false);
   const isMobile = useIsMobile();
+  const { checkPerms } = useContext(UserContext);
 
   useEffect(() => {
     setHasMounted(true);
@@ -58,6 +62,14 @@ export function RoleEditSheet({
   if (!role) {
     return null;
   }
+
+  const canEditRole = checkPerms({
+    list: [perms.adminPanel.administration.roles.edit],
+  });
+
+  const canManagePermissions = checkPerms({
+    list: [perms.adminPanel.administration.roles.edit],
+  });
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
@@ -86,20 +98,23 @@ export function RoleEditSheet({
                 name="displayName"
                 defaultValue={role?.displayName ?? ""}
                 className="col-span-2"
+                disabled={!canEditRole}
               />
             </div>
-            <div className="flex flex-col gap-3">
-              <Label>Permissions</Label>
-              <Button
-                type="button"
-                variant="outline"
-                className="w-full justify-start bg-transparent"
-                onClick={onSetPermissionsClick}
-              >
-                <IconShield className="mr-2 h-4 w-4" />
-                Set Permissions
-              </Button>
-            </div>
+            {canManagePermissions && (
+              <div className="flex flex-col gap-3">
+                <Label>Permissions</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full justify-start bg-transparent"
+                  onClick={onSetPermissionsClick}
+                >
+                  <IconShield className="mr-2 h-4 w-4" />
+                  Set Permissions
+                </Button>
+              </div>
+            )}
           </form>
         </div>
         <SheetFooter>
@@ -111,16 +126,18 @@ export function RoleEditSheet({
           >
             Cancel
           </Button>
-          <Button form="edit-role-form" type="submit" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                Updating...
-              </>
-            ) : (
-              "Submit"
-            )}
-          </Button>
+          {canEditRole && (
+            <Button form="edit-role-form" type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <>
+                  <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Updating...
+                </>
+              ) : (
+                "Submit"
+              )}
+            </Button>
+          )}
         </SheetFooter>
       </SheetContent>
     </Sheet>

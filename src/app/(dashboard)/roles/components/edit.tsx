@@ -117,7 +117,6 @@ export function EditRole() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Form Fields */}
             <div className="grid grid-cols-1 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="displayName">Role Name *</Label>
