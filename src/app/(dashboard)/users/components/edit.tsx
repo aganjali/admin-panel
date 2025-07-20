@@ -93,7 +93,7 @@ export function EditUser() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("User updated successfully");
-      router.push("/dashboard/users");
+      router.push("/users");
     },
     onError: (error) => {
       console.error("Update user error:", error);
@@ -210,10 +210,7 @@ export function EditUser() {
       assignedRoleNames: formData.role ? [formData.role] : [],
       sendActivationEmail: formData.sendActivationEmail,
       setRandomPassword: formData.setRandomPassword,
-      organizationUnits:
-        formData.organizationUnits.length > 0
-          ? formData.organizationUnits
-          : null,
+      organizationUnits: formData.organizationUnits,
     };
 
     try {
