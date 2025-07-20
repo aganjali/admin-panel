@@ -1,7 +1,7 @@
 import type React from "react";
 import { AuthGuard } from "@/components/guards/auth-gurad";
 import { perms } from "@/lib/perms";
-import { CreateUser } from "../components/create";
+import { CreateEditUser } from "../components/create-edit";
 
 export default function CreateUserPage() {
   return (
@@ -14,7 +14,7 @@ export default function CreateUserPage() {
         type: "and",
       }}
     >
-      <CreateUser />
+      <CreateEditUser />
     </AuthGuard>
   );
 }

@@ -116,20 +116,20 @@ export const getColumns = (
   onUserAction: OnUserAction,
   isDeleting: boolean
 ): ColumnDef<UserListWithAvatarDto>[] => [
-  {
-    id: "drag",
-    header: () => null,
-    cell: () => null,
-    enableSorting: false,
-    enableResizing: false,
-    enableHiding: false,
-    size: 50,
-    minSize: 50,
-    maxSize: 50,
-  },
+  // {
+  //   id: "drag",
+  //   header: () => null,
+  //   cell: () => null,
+  //   enableSorting: false,
+  //   enableResizing: false,
+  //   enableHiding: false,
+  //   size: 50,
+  //   minSize: 50,
+  //   maxSize: 50,
+  // },
   {
     id: "userName",
-    accessorKey: "name",
+    accessorKey: "userName",
     header: ({ column }) => (
       <SortableHeader column={column}>User name</SortableHeader>
     ),
@@ -158,7 +158,7 @@ export const getColumns = (
     maxSize: 300,
   },
   {
-    id: "firstName",
+    id: "name",
     accessorKey: "name",
     header: ({ column }) => (
       <SortableHeader column={column}>First Name</SortableHeader>
@@ -175,6 +175,7 @@ export const getColumns = (
     maxSize: 250,
   },
   {
+    id: "surname",
     accessorKey: "surname",
     header: ({ column }) => (
       <SortableHeader column={column}>Surname</SortableHeader>
@@ -191,7 +192,8 @@ export const getColumns = (
     maxSize: 250,
   },
   {
-    accessorKey: "roles",
+    id: "role",
+    accessorKey: "role",
     header: ({ column }) => (
       <SortableHeader column={column}>Roles</SortableHeader>
     ),
@@ -229,13 +231,14 @@ export const getColumns = (
       const rolesB = rowB.original.roles?.length ?? 0;
       return rolesA - rolesB;
     },
-    enableSorting: true,
+    enableSorting: false,
     enableResizing: true,
     size: 120,
     minSize: 95,
     maxSize: 200,
   },
   {
+    id: "emailAddress",
     accessorKey: "emailAddress",
     header: ({ column }) => (
       <SortableHeader column={column}>Email Address</SortableHeader>
@@ -255,6 +258,7 @@ export const getColumns = (
     maxSize: 400,
   },
   {
+    id: "isEmailConfirmed",
     accessorKey: "isEmailConfirmed",
     header: ({ column }) => (
       <SortableHeader column={column}>Email Confirm</SortableHeader>
@@ -289,6 +293,7 @@ export const getColumns = (
     maxSize: 200,
   },
   {
+    id: "isActive",
     accessorKey: "isActive",
     header: ({ column }) => (
       <SortableHeader column={column}>Active</SortableHeader>
@@ -326,6 +331,7 @@ export const getColumns = (
   },
 
   {
+    id: "creationTime",
     accessorKey: "creationTime",
     header: ({ column }) => (
       <SortableHeader column={column}>Creation time</SortableHeader>

@@ -1,31 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo, useId } from "react";
-import {
-  closestCenter,
-  DndContext,
-  KeyboardSensor,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type UniqueIdentifier,
-} from "@dnd-kit/core";
-import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { useState, useMemo } from "react";
+
 import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  SortingState,
   useReactTable,
   VisibilityState,
   ColumnSizingState,
+  ColumnSort,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -39,28 +23,28 @@ import { UserListWithAvatarDto } from "@/types";
 import { cn } from "@/lib/utils";
 
 import { getColumns } from "./columns";
-import { DraggableRow } from "./draggable-row";
+import { Row } from "./row";
 import { DataTableHeader } from "./header";
 import { DataTableToolbar } from "./toolbar";
 import { DataTablePagination } from "./pagination";
-import { DataTableResizer } from "./resizer";
-import { Loader2 } from "lucide-react";
 
 interface UsersDataTableProps {
   data: UserListWithAvatarDto[];
   totalCount: number;
   isLoading: boolean;
   isDeleting: boolean;
-  searchValue: string;
-  roleFilter: string[];
-  onlyLockedUsers: boolean;
+  searchValue: string | null;
+  roleFilter: number;
+  onlyLockedUsers: boolean | null;
+  permissions: string[];
   currentPage: number;
   pageSize: number;
-  sorting: Array<{ id: string; desc: boolean }>;
+  sorting: ColumnSort[] | null;
   onUserAction: (userId: number, action: string) => void;
-  onSearchChange: (value: string) => void;
-  onRoleFilterChange: (roles: string[]) => void;
-  onOnlyLockedUsersChange: (value: boolean) => void;
+  onSearchChange: (value: string | null) => void;
+  onRoleFilterChange: (role: number) => void;
+  onPermissionsChange: (permissions: string[]) => void;
+  onOnlyLockedUsersChange: (value: boolean | null) => void;
   onPageChange: (page: number) => void;
   onPageSizeChange: (size: number) => void;
   onSortingChange: (sorting: Array<{ id: string; desc: boolean }>) => void;
@@ -69,23 +53,23 @@ interface UsersDataTableProps {
   isExporting?: boolean;
 }
 
-const roleOptions = ["Admin", "User"];
-
 export function UsersDataTable({
-  data: initialData,
+  data,
   totalCount,
   isLoading,
   isDeleting,
   searchValue,
   roleFilter,
   onlyLockedUsers,
+  permissions,
   currentPage,
   pageSize,
-  sorting: serverSorting,
+  sorting,
   onUserAction,
   onSearchChange,
   onRoleFilterChange,
   onOnlyLockedUsersChange,
+  onPermissionsChange,
   onPageChange,
   onPageSizeChange,
   onSortingChange,
@@ -93,58 +77,8 @@ export function UsersDataTable({
   onExportExcel,
   isExporting,
 }: UsersDataTableProps) {
-  const [data, setData] = useState(() => initialData);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-  const [sorting, setSorting] = useState<SortingState>(() =>
-    serverSorting.map((sort) => ({ id: sort.id, desc: sort.desc }))
-  );
-  const [localSearchValue, setLocalSearchValue] = useState(searchValue);
-  const [isSearching, setIsSearching] = useState(false);
   const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
-  const sortableId = useId();
-
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  );
-
-  const dataIds = useMemo<UniqueIdentifier[]>(
-    () =>
-      data?.map((item, index) => (item.id ?? `temp-${index}`).toString()) || [],
-    [data]
-  );
-
-  useEffect(() => {
-    setData(initialData);
-  }, [initialData]);
-
-  useEffect(() => {
-    setSorting(serverSorting.map((sort) => ({ id: sort.id, desc: sort.desc })));
-  }, [serverSorting]);
-
-  useEffect(() => {
-    if (localSearchValue !== searchValue) {
-      setIsSearching(true);
-    }
-
-    const timer = setTimeout(() => {
-      if (localSearchValue !== searchValue) {
-        onSearchChange(localSearchValue);
-      }
-      setIsSearching(false);
-    }, 300);
-
-    return () => {
-      clearTimeout(timer);
-      setIsSearching(false);
-    };
-  }, [localSearchValue, searchValue, onSearchChange]);
-
-  useEffect(() => {
-    setLocalSearchValue(searchValue);
-    setIsSearching(false);
-  }, [searchValue]);
 
   const columns = useMemo(
     () => getColumns(onUserAction, isDeleting),
@@ -155,23 +89,17 @@ export function UsersDataTable({
     data,
     columns,
     state: {
-      sorting,
+      sorting: sorting ?? [],
       columnVisibility,
-      columnFilters: [
-        {
-          id: "roles",
-          value: roleFilter,
-        },
-      ],
       columnSizing,
     },
     getRowId: (row, index) => (row.id ?? `temp-${index}`).toString(),
     onSortingChange: (updaterOrValue) => {
       const newSorting =
         typeof updaterOrValue === "function"
-          ? updaterOrValue(sorting)
+          ? updaterOrValue(sorting ?? [])
           : updaterOrValue;
-      setSorting(newSorting);
+
       onSortingChange(
         newSorting.map((sort) => ({ id: sort.id, desc: sort.desc }))
       );
@@ -183,141 +111,121 @@ export function UsersDataTable({
     manualPagination: true,
     manualSorting: true,
     pageCount: Math.ceil(totalCount / pageSize),
-    enableColumnResizing: true,
-    columnResizeMode: "onChange",
-    columnResizeDirection: "ltr",
+    // enableColumnResizing: true,
+    // columnResizeMode: "onChange",
+    // columnResizeDirection: "ltr",
   });
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
-    if (active && over && active.id !== over.id) {
-      setData((currentData) => {
-        const oldIndex = currentData.findIndex(
-          (item, index) => (item.id ?? `temp-${index}`).toString() === active.id
-        );
-        const newIndex = currentData.findIndex(
-          (item, index) => (item.id ?? `temp-${index}`).toString() === over.id
-        );
-        if (oldIndex !== -1 && newIndex !== -1) {
-          return arrayMove(currentData, oldIndex, newIndex);
-        }
-        return currentData;
-      });
-    }
-  }
+  // function handleDragEnd(event: DragEndEvent) {
+  //   const { active, over } = event;
+  //   if (active && over && active.id !== over.id) {
+  //     setData((currentData) => {
+  //       const oldIndex = currentData.findIndex(
+  //         (item, index) => (item.id ?? `temp-${index}`).toString() === active.id
+  //       );
+  //       const newIndex = currentData.findIndex(
+  //         (item, index) => (item.id ?? `temp-${index}`).toString() === over.id
+  //       );
+  //       if (oldIndex !== -1 && newIndex !== -1) {
+  //         return arrayMove(currentData, oldIndex, newIndex);
+  //       }
+  //       return currentData;
+  //     });
+  //   }
+  // }
 
   const totalPages = Math.ceil(totalCount / pageSize);
 
   return (
-    <div className="w-full flex-col justify-start gap-6 space-y-4">
+    <div className="w-full flex-col justify-start  space-y-4 flex-1 flex ">
       <DataTableHeader />
 
-      <div className="relative flex flex-col gap-4 w-full">
-        <div className="w-full">
-          <DataTableToolbar
-            searchValue={localSearchValue}
-            isSearching={isSearching}
-            roleFilter={roleFilter}
-            roleOptions={roleOptions}
-            onlyLockedUsers={onlyLockedUsers}
-            table={table}
-            onSearchChange={setLocalSearchValue}
-            onRoleFilterChange={onRoleFilterChange}
-            onOnlyLockedUsersChange={onOnlyLockedUsersChange}
-            onImportExcel={onImportExcel}
-            onExportExcel={onExportExcel}
-            isExporting={isExporting}
-          />
-        </div>
+      <div className="relative flex flex-col gap-4 w-full flex-1 ">
+        <DataTableToolbar
+          searchValue={searchValue}
+          roleFilter={roleFilter}
+          onlyLockedUsers={onlyLockedUsers}
+          permissionsFilter={permissions}
+          table={table}
+          onSearchChange={onSearchChange}
+          onRoleFilterChange={onRoleFilterChange}
+          onOnlyLockedUsersChange={onOnlyLockedUsersChange}
+          onPermissionFilterChange={onPermissionsChange}
+          onImportExcel={onImportExcel}
+          onExportExcel={onExportExcel}
+          isExporting={isExporting}
+        />
 
-        <div className="w-full">
-          <div className="overflow-x-auto rounded-lg border scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border">
-            <DndContext
-              collisionDetection={closestCenter}
-              modifiers={[restrictToVerticalAxis]}
-              onDragEnd={handleDragEnd}
-              sensors={sensors}
-              id={sortableId}
-            >
-              <Table
-                className="relative"
-                style={{
-                  tableLayout: "fixed",
-                  width: table.getTotalSize(),
-                }}
-              >
-                <TableHeader className="bg-muted sticky top-0 z-10">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header, headerIndex) => {
-                        const isDragColumn = headerIndex === 0;
-                        const isActionColumn = header.column.id === "actions";
+        <div className="w-full overflow-hidden relative flex-1 rounded-lg border max-h-[480px]">
+          <Table
+            className="relative "
+            containerClassName={cn("relative overflow-y-auto h-full", {
+              "no-scrollbar": isLoading,
+            })}
+          >
+            <TableHeader className="bg-muted sticky top-0 z-10">
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    // const isDragColumn = headerIndex === 0;
+                    // const isActionColumn = header.column.id === "actions";
 
-                        return (
-                          <TableHead
-                            key={header.id}
-                            colSpan={header.colSpan}
-                            style={{
-                              width: header.getSize(),
-                            }}
-                            className={cn(
-                              "group/th relative",
-                              isDragColumn
-                                ? "text-center px-2 py-2 w-auto"
-                                : "text-left px-3 py-2 whitespace-nowrap w-auto",
-                              isActionColumn &&
-                                "sticky -right-0.5 bg-muted z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
-                            )}
-                          >
-                            <div className="flex items-center w-full relative">
-                              {header.isPlaceholder
-                                ? null
-                                : flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                            </div>
-                            {header.column.getCanResize() && (
-                              <DataTableResizer header={header} />
-                            )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <TableRow>
-                      <TableCell colSpan={columns.length} className="h-[50vh]">
-                        <div className="flex justify-center items-center">
-                          <Loader2 className="size-8 text-primary animate-spin" />
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : table.getRowModel().rows?.length ? (
-                    <SortableContext
-                      items={dataIds}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {table.getRowModel().rows.map((row) => (
-                        <DraggableRow key={row.id} row={row} />
-                      ))}
-                    </SortableContext>
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
+                    return (
+                      <TableHead
+                        key={header.id}
+                        colSpan={header.colSpan}
+                        style={{
+                          width: header.getSize(),
+                        }}
+                        className={cn(
+                          "group/th relative",
+                          // isDragColumn
+                          //   ? "text-center px-2 py-2 w-auto"
+                          //   :
+                          "text-left px-3 py-2 whitespace-nowrap w-auto"
+                          // isActionColumn &&
+                          //   "sticky -right-0.5 bg-muted z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
+                        )}
                       >
-                        No users found.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </DndContext>
-          </div>
+                        <div className="flex items-center w-full relative">
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext()
+                              )}
+                        </div>
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody className="relative">
+              {table.getRowModel().rows?.length ? (
+                table
+                  .getRowModel()
+                  .rows.map((row) => <Row key={row.id} row={row} />)
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="text-center h-[438px]"
+                  >
+                    {!isLoading ? "No users found." : ""}
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          {isLoading ? (
+            <div className="absolute inset-x-0 bottom-0 top-10 bg-background/5 backdrop-blur-sm z-10 flex items-center justify-center">
+              <div className="flex items-center gap-3 bg-gray-800 px-4 py-3 rounded-lg border border-gray-600">
+                <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                <span className="text-white font-medium">Loading users...</span>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         <DataTablePagination

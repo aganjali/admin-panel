@@ -95,7 +95,7 @@ function TreeNodeComponent({
 
         <IconComponent className="h-4 w-4 text-muted-foreground" />
 
-        <span className="text-sm select-none flex-1">{node.label}</span>
+        <span className="text-sm select-none ">{node.label}</span>
       </div>
 
       {hasChildren && isExpanded && (
