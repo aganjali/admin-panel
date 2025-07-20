@@ -5,6 +5,7 @@ import { UserListWithAvatarDto } from "@/types";
 import { Button } from "@/components/ui/button";
 import { TableRow, TableCell } from "@/components/ui/table";
 import { IconGripVertical } from "@tabler/icons-react";
+import { cn } from "@/lib/utils";
 
 export function DraggableRow({ row }: { row: Row<UserListWithAvatarDto> }) {
   const {
@@ -29,31 +30,49 @@ export function DraggableRow({ row }: { row: Row<UserListWithAvatarDto> }) {
         transition: transition,
       }}
     >
-      {row.getVisibleCells().map((cell, cellIndex) => (
-        <TableCell key={cell.id} className="px-3 py-2 overflow-hidden">
-          {cellIndex === 0 ? (
-            <div className="flex items-center gap-2 min-w-0">
-              <Button
-                {...attributes}
-                {...listeners}
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground size-7 cursor-grab hover:bg-transparent active:cursor-grabbing flex-shrink-0"
-              >
-                <IconGripVertical className="text-muted-foreground size-3" />
-                <span className="sr-only">Drag to reorder</span>
-              </Button>
-              <div className="min-w-0 flex-1">
+      {row.getVisibleCells().map((cell, cellIndex) => {
+        const isDragColumn = cellIndex === 0;
+        const isUserNameColumn = cellIndex === 1;
+        const isActionColumn = cell.column.id === "actions";
+
+        return (
+          <TableCell
+            key={cell.id}
+            style={{
+              width: cell.column.getSize(),
+            }}
+            className={cn(
+              isDragColumn && "px-2 py-2",
+              !isDragColumn && "px-3 py-2 whitespace-nowrap",
+              isActionColumn &&
+                "sticky -right-0.5 bg-background z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
+            )}
+          >
+            {cellIndex === 0 ? (
+              <div className="flex items-center justify-center">
+                <Button
+                  {...attributes}
+                  {...listeners}
+                  variant="ghost"
+                  size="icon"
+                  className="text-muted-foreground size-4 cursor-grab hover:bg-transparent active:cursor-grabbing flex-shrink-0 p-0"
+                >
+                  <IconGripVertical className="text-muted-foreground size-3" />
+                  <span className="sr-only">Drag to reorder</span>
+                </Button>
+              </div>
+            ) : isUserNameColumn ? (
+              <div className="flex items-center gap-3 overflow-hidden truncate">
                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
               </div>
-            </div>
-          ) : (
-            <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-              {flexRender(cell.column.columnDef.cell, cell.getContext())}
-            </div>
-          )}
-        </TableCell>
-      ))}
+            ) : (
+              <div className="overflow-hidden truncate">
+                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+              </div>
+            )}
+          </TableCell>
+        );
+      })}
     </TableRow>
   );
 }

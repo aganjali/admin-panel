@@ -25,6 +25,7 @@ import {
   SortingState,
   useReactTable,
   VisibilityState,
+  ColumnSizingState,
 } from "@tanstack/react-table";
 import {
   Table,
@@ -35,12 +36,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { UserListWithAvatarDto } from "@/types";
+import { cn } from "@/lib/utils";
 
 import { getColumns } from "./columns";
 import { DraggableRow } from "./draggable-row";
 import { DataTableHeader } from "./header";
 import { DataTableToolbar } from "./toolbar";
 import { DataTablePagination } from "./pagination";
+import { DataTableResizer } from "./resizer";
 import { Loader2 } from "lucide-react";
 
 interface UsersDataTableProps {
@@ -97,6 +100,7 @@ export function UsersDataTable({
   );
   const [localSearchValue, setLocalSearchValue] = useState(searchValue);
   const [isSearching, setIsSearching] = useState(false);
+  const [columnSizing, setColumnSizing] = useState<ColumnSizingState>({});
   const sortableId = useId();
 
   const sensors = useSensors(
@@ -159,6 +163,7 @@ export function UsersDataTable({
           value: roleFilter,
         },
       ],
+      columnSizing,
     },
     getRowId: (row, index) => (row.id ?? `temp-${index}`).toString(),
     onSortingChange: (updaterOrValue) => {
@@ -172,11 +177,15 @@ export function UsersDataTable({
       );
     },
     onColumnVisibilityChange: setColumnVisibility,
+    onColumnSizingChange: setColumnSizing,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     manualPagination: true,
     manualSorting: true,
     pageCount: Math.ceil(totalCount / pageSize),
+    enableColumnResizing: true,
+    columnResizeMode: "onChange",
+    columnResizeDirection: "ltr",
   });
 
   function handleDragEnd(event: DragEndEvent) {
@@ -203,8 +212,8 @@ export function UsersDataTable({
     <div className="w-full flex-col justify-start gap-6 space-y-4">
       <DataTableHeader />
 
-      <div className="relative flex flex-col gap-4 px-4 lg:px-6">
-        <div className="w-full min-w-0">
+      <div className="relative flex flex-col gap-4 w-full">
+        <div className="w-full">
           <DataTableToolbar
             searchValue={localSearchValue}
             isSearching={isSearching}
@@ -222,7 +231,7 @@ export function UsersDataTable({
         </div>
 
         <div className="w-full">
-          <div className="overflow-hidden rounded-lg border">
+          <div className="overflow-x-auto rounded-lg border scrollbar-thin scrollbar-track-transparent scrollbar-thumb-border">
             <DndContext
               collisionDetection={closestCenter}
               modifiers={[restrictToVerticalAxis]}
@@ -230,38 +239,50 @@ export function UsersDataTable({
               sensors={sensors}
               id={sortableId}
             >
-              <Table className="w-full table-fixed">
-                <colgroup>
-                  <col className="w-12" />
-                  <col className="w-32" />
-                  <col className="w-24" />
-                  <col className="w-24" />
-                  <col className="w-28" />
-                  <col className="w-48" />
-                  <col className="w-24" />
-                  <col className="w-20" />
-                  <col className="w-28" />
-                  <col className="w-16" />
-                </colgroup>
+              <Table
+                className="relative"
+                style={{
+                  tableLayout: "fixed",
+                  width: table.getTotalSize(),
+                }}
+              >
                 <TableHeader className="bg-muted sticky top-0 z-10">
                   {table.getHeaderGroups().map((headerGroup) => (
                     <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => (
-                        <TableHead
-                          key={header.id}
-                          colSpan={header.colSpan}
-                          className="text-left px-3 py-2 overflow-hidden"
-                        >
-                          <div className="truncate">
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext()
-                                )}
-                          </div>
-                        </TableHead>
-                      ))}
+                      {headerGroup.headers.map((header, headerIndex) => {
+                        const isDragColumn = headerIndex === 0;
+                        const isActionColumn = header.column.id === "actions";
+
+                        return (
+                          <TableHead
+                            key={header.id}
+                            colSpan={header.colSpan}
+                            style={{
+                              width: header.getSize(),
+                            }}
+                            className={cn(
+                              "group/th relative",
+                              isDragColumn
+                                ? "text-center px-2 py-2 w-auto"
+                                : "text-left px-3 py-2 whitespace-nowrap w-auto",
+                              isActionColumn &&
+                                "sticky -right-0.5 bg-muted z-20 border-l shadow-[-4px_0_8px_0_rgba(0,0,0,0.1)] dark:shadow-[-4px_0_8px_0_rgba(0,0,0,0.3)]"
+                            )}
+                          >
+                            <div className="flex items-center w-full relative">
+                              {header.isPlaceholder
+                                ? null
+                                : flexRender(
+                                    header.column.columnDef.header,
+                                    header.getContext()
+                                  )}
+                            </div>
+                            {header.column.getCanResize() && (
+                              <DataTableResizer header={header} />
+                            )}
+                          </TableHead>
+                        );
+                      })}
                     </TableRow>
                   ))}
                 </TableHeader>
